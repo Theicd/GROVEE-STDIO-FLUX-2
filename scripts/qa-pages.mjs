@@ -50,8 +50,8 @@ if (existsSync(indexPath)) {
   check(html.includes("GROVEE STDIO FLUX 2"), "QA-PG-08 page title is FLUX 2 product");
   check(!html.includes("SD 1.5"), "QA-PG-09 page title is not SD 1.5");
   check(html.includes('property="og:image"'), "QA-PG-10 Open Graph image meta");
-  check(html.includes("og-image.png"), "QA-PG-11 OG image URL");
-  check(existsSync(join(dist, "og-image.png")), "QA-PG-12 og-image.png in dist");
+  check(html.includes("og-image.jpg"), "QA-PG-11 OG image URL");
+  check(existsSync(join(dist, "og-image.jpg")), "QA-PG-12 og-image.jpg in dist");
 }
 
 if (fail > 0) process.exit(1);

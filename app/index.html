@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="he" dir="rtl">
+<html lang="en" prefix="og: https://ogp.me/ns#">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
@@ -7,15 +7,15 @@
     <title>GROVEE STDIO FLUX 2 — Browser AI Image Generation</title>
     <meta
       name="description"
-      content="FLUX.2 Klein 4B image generation entirely in your browser via WebGPU. No install — one-time download, then create images locally at 256–1024px."
+      content="FLUX.2 Klein 4B image generation in your browser via WebGPU. No install — one-time download, then ~30 seconds per image at 256–1024px."
     />
     <meta name="theme-color" content="#0a0a0a" />
     <meta name="application-name" content="GROVEE STDIO FLUX 2" />
 
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
-    <link rel="apple-touch-icon" href="./og-image.png" />
+    <link rel="apple-touch-icon" href="./og-image.jpg" />
 
-    <!-- Open Graph / WhatsApp / Facebook / LinkedIn -->
+    <!-- Open Graph / WhatsApp / Facebook / Telegram -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="GROVEE STDIO FLUX 2" />
     <meta property="og:url" content="https://theicd.github.io/GROVEE-STDIO-FLUX-2/" />
@@ -24,12 +24,16 @@
       property="og:description"
       content="FLUX.2 Klein 4B runs in Chrome/Edge with WebGPU. Generate images in your browser — no install, no server. One-time ~12GB download, then ~30s per image."
     />
-    <meta property="og:image" content="https://theicd.github.io/GROVEE-STDIO-FLUX-2/og-image.png" />
+    <meta property="og:image" content="https://theicd.github.io/GROVEE-STDIO-FLUX-2/og-image.jpg" />
+    <meta property="og:image:secure_url" content="https://theicd.github.io/GROVEE-STDIO-FLUX-2/og-image.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="GROVEE STDIO FLUX 2 — torus-knot wireframe, FLUX.2 Klein WebGPU browser studio" />
+    <meta
+      property="og:image:alt"
+      content="GROVEE STDIO FLUX 2 — FLUX.2 Klein WebGPU browser image studio"
+    />
     <meta property="og:locale" content="en_US" />
-    <meta property="og:locale:alternate" content="he_IL" />
 
     <!-- Twitter / X -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -38,9 +42,10 @@
       name="twitter:description"
       content="FLUX.2 Klein 4B in your browser via WebGPU. No install — create images locally after a one-time download."
     />
-    <meta name="twitter:image" content="https://theicd.github.io/GROVEE-STDIO-FLUX-2/og-image.png" />
+    <meta name="twitter:image" content="https://theicd.github.io/GROVEE-STDIO-FLUX-2/og-image.jpg" />
 
     <link rel="canonical" href="https://theicd.github.io/GROVEE-STDIO-FLUX-2/" />
+    <link rel="image_src" href="https://theicd.github.io/GROVEE-STDIO-FLUX-2/og-image.jpg" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -50,6 +55,15 @@
     />
   </head>
   <body>
+    <!-- Static preview for link crawlers (WhatsApp, Telegram) -->
+    <div id="link-preview-fallback" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">
+      <h1>GROVEE STDIO FLUX 2 — Browser AI Image Generation</h1>
+      <p>
+        FLUX.2 Klein 4B runs in Chrome/Edge with WebGPU. Generate images in your browser — no install.
+        One-time download, then about 30 seconds per image.
+      </p>
+      <img src="./og-image.jpg" alt="GROVEE STDIO FLUX 2 preview" width="1200" height="630" />
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
