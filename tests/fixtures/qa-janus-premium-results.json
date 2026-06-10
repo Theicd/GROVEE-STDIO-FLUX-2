@@ -1,0 +1,32 @@
+{
+  "url": "http://127.0.0.1:5180/?qa=1&autogen=1",
+  "verifiedAt": "2026-06-10T01:15:00+02:00",
+  "method": "cursor-ide-browser __janusQa probe",
+  "pass": 12,
+  "fail": 0,
+  "results": [
+    { "ok": true, "name": "QA-DL-01 page loads", "detail": "HTTP 200" },
+    { "ok": true, "name": "QA-DL-10 first download", "detail": "~5.2 GB total (onnx shards)" },
+    { "ok": true, "name": "QA-LD-01 model loaded", "detail": "webgpu (fp16)" },
+    { "ok": true, "name": "QA-LD-02 WebGPU", "detail": "yes" },
+    { "ok": true, "name": "QA-GEN-01 generation started", "detail": "autogen prompt" },
+    { "ok": true, "name": "QA-GEN-02 gallery has image", "detail": "count=1" },
+    { "ok": true, "name": "QA-GEN-10 image has pixels", "detail": "384×384" },
+    { "ok": true, "name": "QA-GEN-11 resolution plausible", "detail": "384×384" },
+    { "ok": true, "name": "vitest L0", "detail": "3/3" },
+    { "ok": true, "name": "qa:janus smoke L1", "detail": "pass" },
+    { "ok": true, "name": "qa:pages L4", "detail": "4/4" },
+    { "ok": true, "name": "screenshot saved", "detail": "tests/fixtures/qa-runs/janus-qa-gallery-20260610-011610.png" }
+  ],
+  "snapshot": {
+    "phase": "ready",
+    "webgpu": true,
+    "deviceLabel": "webgpu (fp16)",
+    "loadedBytes": 5207432560,
+    "totalBytes": 5207432560,
+    "galleryCount": 1,
+    "lastImageWidth": 384,
+    "lastImageHeight": 384,
+    "status": "Image ready"
+  }
+}

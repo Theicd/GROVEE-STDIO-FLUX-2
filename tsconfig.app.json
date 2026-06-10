@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "target": "ES2023",
+    "lib": ["ES2023", "DOM", "DOM.Iterable", "WebWorker"],
+    "module": "ESNext",
+    "types": ["vite/client"],
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["app/src"],
+  "exclude": [
+    "app/src/janus.worker.ts",
+    "app/src/janusClient.ts",
+    "app/src/dreamlite.worker.ts",
+    "app/src/dreamliteClient.ts",
+    "app/src/dreamlitePipeline.ts",
+    "app/src/flux.worker.ts",
+    "app/src/fluxClient.ts",
+    "app/src/fluxPipeline.ts",
+    "app/src/fluxPipeline.test.ts",
+    "app/src/sana.worker.ts",
+    "app/src/sanaClient.ts",
+    "app/src/sanaPipeline.ts",
+    "app/src/sanaPipeline.test.ts"
+  ]
+}

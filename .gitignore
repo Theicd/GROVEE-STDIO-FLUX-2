@@ -1,0 +1,9 @@
+node_modules
+dist
+tests/fixtures/playwright-profile/
+*.local
+.DS_Store
+*.log
+.env
+.env.*
+!.env.example
