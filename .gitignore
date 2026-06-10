@@ -1,5 +1,6 @@
 node_modules
 dist
+.pages-deploy
 tests/fixtures/playwright-profile/
 *.local
 .DS_Store

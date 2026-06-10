@@ -1,6 +1,6 @@
 export type Locale = "he" | "en";
 
-export const LOCALE_STORAGE_KEY = "grovee-stdio-locale";
+export const LOCALE_STORAGE_KEY = "grovee-flux2-locale";
 
 export type TranslationTree = {
   app: {
@@ -105,7 +105,7 @@ export const translations: Record<Locale, TranslationTree> = {
   he: {
     app: {
       tagline: "FLUX.2 // מנוע דפדפן",
-      mark: "GE",
+      mark: "F2",
     },
     intro: {
       typewriter: [
@@ -225,7 +225,7 @@ export const translations: Record<Locale, TranslationTree> = {
   en: {
     app: {
       tagline: "FLUX.2 // BROWSER ENGINE",
-      mark: "GE",
+      mark: "F2",
     },
     intro: {
       typewriter: [

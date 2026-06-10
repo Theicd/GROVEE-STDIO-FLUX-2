@@ -10,7 +10,7 @@ cd /d "%~dp0"
 
 echo.
 echo ========================================
-echo   GROVEE STDIO — Local launcher
+echo   GROVEE STDIO FLUX 2 — Local launcher
 echo ========================================
 echo.
 

@@ -1,7 +1,5 @@
-import { APP_DOWNLOAD_PREFIX, APP_NAME } from "./appBranding";
+import { APP_DOWNLOAD_PREFIX, APP_NAME, SITE_URL } from "./appBranding";
 import type { GenerationItem } from "./types";
-
-const SITE_URL = "https://theicd.github.io/GROVEE-STDIO/";
 
 export type ShareChannel =
   | "native"

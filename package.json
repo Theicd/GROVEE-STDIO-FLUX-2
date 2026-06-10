@@ -1,11 +1,13 @@
 {
-  "name": "janusgrove",
+  "name": "grovee-stdio-flux-2",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
+  "description": "GROVEE STDIO FLUX 2 — FLUX.2 Klein browser image generation (WebGPU)",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:pages": "node scripts/build-pages.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "lint": "tsc -b --noEmit",

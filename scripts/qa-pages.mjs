@@ -26,7 +26,10 @@ if (existsSync(indexPath)) {
   check(html.includes('id="root"'), "QA-PG-02 root mount");
   const script = html.match(/src="([^"]+\/assets\/[^"]+\.js)"/);
   if (script) {
-    const assetPath = script[1].replace(/^\//, "").replace(/^GROVEE-STDIO\//, "");
+    const assetPath = script[1]
+      .replace(/^\//, "")
+      .replace(/^GROVEE-STDIO-FLUX-2\//, "")
+      .replace(/^GROVEE-STDIO\//, "");
     check(existsSync(join(dist, assetPath)), "QA-PG-03 main bundle");
   } else {
     check(false, "QA-PG-03 main bundle", "script tag missing");
@@ -38,9 +41,15 @@ check(existsSync(join(dist, ".nojekyll")), "QA-PG-05 .nojekyll for Pages");
 check(existsSync(join(dist, "404.html")), "QA-PG-06 404.html SPA fallback");
 
 const workerFiles = existsSync(join(dist, "assets"))
-  ? readdirSync(join(dist, "assets")).filter((f) => f.startsWith("sd.worker-") && f.endsWith(".js"))
+  ? readdirSync(join(dist, "assets")).filter((f) => f.startsWith("flux.worker-") && f.endsWith(".js"))
   : [];
-check(workerFiles.length > 0, "QA-PG-07 sd.worker bundle in dist/assets", workerFiles[0] ?? "");
+check(workerFiles.length > 0, "QA-PG-07 flux.worker bundle in dist/assets", workerFiles[0] ?? "");
+
+if (existsSync(indexPath)) {
+  const html = readFileSync(indexPath, "utf8");
+  check(html.includes("GROVEE STDIO FLUX 2"), "QA-PG-08 page title is FLUX 2 product");
+  check(!html.includes("SD 1.5"), "QA-PG-09 page title is not SD 1.5");
+}
 
 if (fail > 0) process.exit(1);
 console.log("\nPages smoke OK.");

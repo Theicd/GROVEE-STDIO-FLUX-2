@@ -94,7 +94,7 @@ describe("fluxPipeline", () => {
   });
 
   it("uses a dedicated OPFS cache directory", () => {
-    expect(FLUX_OPFS_CACHE_DIR).toBe("janusgrove-flux-cache");
+    expect(FLUX_OPFS_CACHE_DIR).toBe("grovee-flux2-cache");
   });
 
   it("derives unique cache keys per full URL", async () => {

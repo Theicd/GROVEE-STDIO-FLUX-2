@@ -1,128 +1,56 @@
-# JanusGrove — יכולות מודלים, מגבלות והגדרות
+# GROVEE STDIO FLUX 2 — יכולות מודל, מגבלות והגדרות
 
-הפרויקט תומך בשני מודלים ליצירת תמונות בדפדפן. בחר אחד או שניהם במסך ההורדה.
+ממשק דפדפן עצמאי ליצירת תמונות עם **FLUX.2 Klein 4B** (WebGPU low-bit).  
+**לא** קשור ל-[GROVEE STDIO SD 1.5](https://github.com/Theicd/GROVEE-STDIO).
 
 | מודל | HF ID | גודל משוער | רזולוציה | Negative prompt |
 |------|-------|------------|----------|-----------------|
-| **Janus-Pro 1B** | [`onnx-community/Janus-Pro-1B-ONNX`](https://huggingface.co/onnx-community/Janus-Pro-1B-ONNX) | ~2.4 GB | 384×384 | מיזוג טקסטואלי (`Avoid: …`) |
-| **SD 1.5 WebGPU** | ONNX: [`microsoft/stable-diffusion-v1.5-webnn`](https://huggingface.co/microsoft/stable-diffusion-v1.5-webnn) · ref: [`ehristoforu/stable-diffusion-v1-5-tiny`](https://huggingface.co/ehristoforu/stable-diffusion-v1-5-tiny) | ~2.0 GB | 512×512 | **native** (`negative_prompt`) |
+| **FLUX.2 Klein 4B WebGPU** | [`ryanhlewis/flux2-klein-4b-webgpu-lowbit`](https://huggingface.co/ryanhlewis/flux2-klein-4b-webgpu-lowbit) | ~12 GB (הורדה ראשונה) | 256–1024 (כפולות של 16) | לא נתמך — פרומפט מפורט בלבד |
 
 ---
 
-## Janus-Pro-1B-ONNX
+## ארכיטקטורה
 
-מקור: DeepSeek Janus-Pro (1B), רישיון MIT.
-
-### מצבי עבודה נתמכים (Transformers.js)
-
-| מצב | API | סטטוס |
-|-----|-----|--------|
-| **Text → Image** | `processor(..., { chat_template: "text_to_image" })` + `model.generate_images()` | **פעיל** |
-| **Image + Text → Text** | `processor(conversation)` + `model.generate()` | Phase 2 |
-| **inpaint / img2img** | — | לא נתמך |
-
-### פרמטרים (browser ONNX)
-
-```ts
-await model.generate_images({
-  ...inputs,
-  min_new_tokens: processor.num_image_tokens,
-  max_new_tokens: processor.num_image_tokens,
-  do_sample: true,
-  guidance_scale: 5.0,
-  temperature: 1.0,
-  top_p: 0.95,
-});
-```
-
-| פרמטר | הערות |
-|--------|--------|
-| `guidance_scale` | **5.0 — קריטי לאיכות** |
-| `negative_prompt` | **לא native** — ממוזג ב-`buildFullPrompt()` |
-| `width/height` | **384×384** קבוע |
-| `seed` | לא נתמך בדפדפן |
-
-### dtype / device מומלץ
-
-```ts
-dtype: {
-  prepare_inputs_embeds: "q4",
-  language_model: "q4f16",
-  lm_head: "fp16",
-  gen_head: "fp16",
-  gen_img_embeds: "fp16",
-  image_decode: "fp32",
-}
-device: {
-  prepare_inputs_embeds: "wasm",
-  language_model: "webgpu",
-  lm_head: "webgpu",
-  gen_head: "webgpu",
-  gen_img_embeds: "webgpu",
-  image_decode: "webgpu",
-}
-```
-
-### חוזקות / חולשות
-
-- חזק ב-prompts מפורטים, פורטרטים, עקיבה אחר הוראות (1B).
-- חלש ב-384px, ידיים, טקסט בתוך תמונה, prompts קצרים.
+| שכבה | קבצים |
+|------|--------|
+| UI | `app/src/App.tsx`, `PromptStudio.tsx`, `IntroScreen.tsx` |
+| Worker | `app/src/flux.worker.ts` |
+| Pipeline | `app/src/fluxPipeline.ts` — עוטף `app/public/flux2/flux2-engine.js` |
+| Cache | OPFS `grovee-flux2-cache` — שומר משקולות HF בין רענונים |
 
 ---
 
-## SD 1.5 WebGPU (ONNX Runtime Web)
+## פרמטרים (ברירת מחדל)
 
-מקור: Stable Diffusion v1.5 — משקולות ONNX מ-[`microsoft/stable-diffusion-v1.5-webnn`](https://huggingface.co/microsoft/stable-diffusion-v1.5-webnn) (WebNN/WebGPU).  
-Tokenizer: `Xenova/clip-vit-large-patch14`.  
-רישיון: CreativeML OpenRAIL-M.
-
-### יישום ב-JanusGrove (`sdPipeline.ts` + `sd.worker.ts`)
-
-**לא** דרך Transformers.js `text-to-image` (לא נתמך).  
-הממשק משתמש ב-**ONNX Runtime Web** (`onnxruntime-web`) עם WebGPU:
-
-```ts
-// טעינה: text-encoder + unet + vae-decoder (~2.0 GB)
-// יצירה: 512×512, steps 20/25/50, guidance_scale 7.5, negative_prompt native
-```
-
-| פרמeter | ברירת מחדל UI | הערות |
-|--------|---------------|--------|
-| `num_inference_steps` | 20 | 20 / 25 / 50 (snap) |
-| `guidance_scale` | 7.5 | 1–20 |
-| `width` / `height` | 512 | קבוע כרגע |
-| `negative_prompt` | presets | **ערוץ נפרד** — `buildSdPrompt()` |
-| `seed` | אקראי | אופציונלי |
-
-### קבצי ONNX (נטענים)
-
-| קובץ | גודל |
-|------|------|
-| `text-encoder.onnx` | ~246 MB |
-| `sd-unet-v1.5-…-float16….onnx` | ~1.7 GB |
-| `Stable-Diffusion-v1.5-vae-decoder….onnx` | ~99 MB |
-
-Cache מקומי: OPFS `janusgrove-sd-cache`.
-
-### חוזקות / חולשות
-
-- 512×512, negative prompt אמיתי, diffusion קלאסי.
-- דורש WebGPU (Chrome/Edge 113+); ~2 GB הורדה + compile.
-- לא משתמש ישירות במשקולות `ehristoforu/stable-diffusion-v1-5-tiny` (safetensors) — אותה ארכיטקטורת SD 1.5 ב-ONNX.
+| פרמטר | ערך | הערות |
+|--------|-----|--------|
+| `numInferenceSteps` | 4 | 1–8 |
+| `guidanceScale` | 3.5 | CFG — פחות קריטי מ-SD |
+| `width` / `height` | 512×512 | 256, 512, 768, 1024 |
+| `seed` | אקראי | ניתן לקביעה בהגדרות |
 
 ---
 
-## בחירת מודל ב-UI
+## שלבי טעינה וייצור
 
-1. **מסך Intro** — Janus / SD 1.5 / שניהם + progress לכל מודל.
-2. **Studio** — pills ליד שדה הקלט + ⚙ הגדרות למודל הפעיל.
-3. **Negative panel** — תג `native` כש-SD פעיל; Janus ממשיך במיזוג `Avoid:` (אופציונלי).
+1. **Intro** — הורדת bundle מ-HF (~12 GB), מוצג progress לפי קבצים ו-GB.
+2. **Compile / warmup** — `prepareCustomTransformerStageSetup` + VAE ב-WebGPU (ברירת מחדל 512×512).
+3. **Studio** — הזנת פרומפט → ייצור.
+4. **ייצור ראשון ברזולוציה חדשה** (למשל 256×256) — עוד warmup GPU (דקות) עם הודעות שלב בממשק.
+5. **ייצורים הבאים** — מהירים יותר (דקות → שניות).
 
 ---
 
-## מסקנות ל-UX
+## דרישות דפדפן
 
-- Janus: prompts **מפורטים**, CFG 5, style Photoreal.
-- SD 1.5: negative prompt נפרד, CFG 7.5, 20 steps, 512×512.
-- הצג badge רזולוציה לפי מודל פעיל.
-- אזהרת WebGPU כשאין GPU.
+- Chrome / Edge 113+ עם WebGPU
+- תמיכה ב-`shader-f16` (חובה לנתיב custom low-bit)
+- `navigator.storage.persist()` מומלץ לשמירת cache
+
+---
+
+## מגבלות ידועות
+
+- אין negative prompt נפרד (מגבלת מודל / pipeline).
+- הורדה ראשונה כבדה; דורשת סבלנות ומקום בדיסק (OPFS).
+- רזולוציה גבוהה = יותר VRAM / זמן denoise.

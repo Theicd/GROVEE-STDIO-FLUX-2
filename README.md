@@ -1,6 +1,8 @@
-# GROVEE STDIO
+# GROVEE STDIO FLUX 2
 
-**SD 1.5** — AI image generation entirely in your browser (WebGPU / WASM). HAL-terminal UI.
+**FLUX.2 Klein 4B** — AI image generation entirely in your browser (WebGPU). HAL-terminal UI.
+
+This is a **separate product** from [GROVEE STDIO (SD 1.5)](https://github.com/Theicd/GROVEE-STDIO). Different repo, different model (~12 GB), different live URL.
 
 ---
 
@@ -8,12 +10,12 @@
 
 ### Live web UI
 
-**https://theicd.github.io/GROVEE-STDIO/**
+**https://theicd.github.io/GROVEE-STDIO-FLUX-2/**
 
 This is the real interface. The repo page on github.com is only source code + this README.
 
-> **First visit:** engine loads automatically in the browser (~2 GB cached once) + GPU prep (2–5 min) → enter prompt → **▶**  
-> **Return visits:** loads from browser cache in seconds — no reinstall, no npm.
+> **First visit:** FLUX.2 Klein downloads in the browser (~12 GB, cached locally via OPFS) + GPU warmup (several minutes on first generate) → enter prompt → **▶**  
+> **Return visits:** model loads from browser cache — no reinstall, no npm.
 
 ### If you see only this README on Pages
 
@@ -22,7 +24,7 @@ GitHub is serving the repo instead of the built app. Fix once:
 1. Repo **Settings → Pages → Build and deployment → Source: GitHub Actions**
 2. Push latest `main` (includes `.github/workflows/deploy-pages.yml`)
 3. **Actions** tab → wait for **Deploy GitHub Pages** to finish (green)
-4. Reload **https://theicd.github.io/GROVEE-STDIO/** — you should see **GROVEE STDIO** intro, not JanusGrove text
+4. Reload **https://theicd.github.io/GROVEE-STDIO-FLUX-2/** — you should see **GROVEE STDIO FLUX 2** intro
 
 ---
 
@@ -39,18 +41,25 @@ start.bat
 | Command | Description |
 |---------|-------------|
 | `npm run dev` | Dev server (`base: ./`) |
-| `npm run build:pages` | Production build for GitHub Pages (`/GROVEE-STDIO/`) |
+| `npm run build:pages` | Production build for GitHub Pages (`/GROVEE-STDIO-FLUX-2/`) |
 | `npm run qa:pages` | Smoke-check `dist/` after Pages build |
 | `npm test` | Unit tests |
 
 ## Requirements
 
-- Chrome / Edge **113+** with **WebGPU**
-- ~4 GB RAM recommended
-- Internet for first model download (Hugging Face CDN — works from Pages origin)
+- Chrome / Edge **113+** with **WebGPU** and **shader-f16**
+- ~8 GB RAM recommended
+- Internet for first model download ([Hugging Face — ryanhlewis/flux2-klein-4b-webgpu-lowbit](https://huggingface.co/ryanhlewis/flux2-klein-4b-webgpu-lowbit))
 
 ## Docs
 
 - [docs/MODEL_CAPABILITIES.md](docs/MODEL_CAPABILITIES.md)
 - [docs/QA_PLAN.md](docs/QA_PLAN.md)
 - [docs/PROMPT_LIBRARY.md](docs/PROMPT_LIBRARY.md)
+
+## Related
+
+| Product | Model | Live URL |
+|---------|-------|----------|
+| **GROVEE STDIO FLUX 2** (this repo) | FLUX.2 Klein 4B WebGPU | https://theicd.github.io/GROVEE-STDIO-FLUX-2/ |
+| [GROVEE STDIO](https://github.com/Theicd/GROVEE-STDIO) | Stable Diffusion 1.5 | https://theicd.github.io/GROVEE-STDIO/ |
