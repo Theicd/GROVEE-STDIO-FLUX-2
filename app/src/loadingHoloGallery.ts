@@ -10,16 +10,18 @@ export const LOADING_HOLO_IMAGES = [
   "https://npub1hgne62teaw8nqtnu8d0rln6f5l7xr5fk63tya2wysyl8v6d3y7ks5h9kks.blossom.band/58c9db2329620a7045503ededebbd3aca6552d68992516af93be48147cd26bf6.png",
 ] as const;
 
-/** Seconds per image on one side (10–14s range). */
-export const LOADING_HOLO_SLOT_SEC = 13;
+/** Seconds per image on one side (~10s total). */
+export const LOADING_HOLO_SLOT_SEC = 10;
 
 /** Right side starts mid-cycle so sides do not pulse in sync. */
-export const LOADING_HOLO_RIGHT_OFFSET_SEC = 6.5;
+export const LOADING_HOLO_RIGHT_OFFSET_SEC = 5;
 
-/** Keyframe phases within each image slot (approach → hold → fade). */
+/** Keyframe phases within each image slot (approach → hold → quick fade). */
 export const LOADING_HOLO_PHASE = {
-  approachEnd: 0.4,
-  holdEnd: 0.55,
+  approachEnd: 0.52,
+  holdEnd: 0.72,
+  fadeEnd: 0.82,
+  fadeSec: 1,
   peakOpacity: 0.85,
   peakScale: 1.15,
   startScale: 0.08,

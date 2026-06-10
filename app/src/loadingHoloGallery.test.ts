@@ -23,9 +23,8 @@ describe("loadingHoloGallery", () => {
     expect(right).toEqual(LOADING_HOLO_IMAGES.filter((_, i) => i % 2 === 1));
   });
 
-  it("uses 10–14s slot timing for independent side cycles", () => {
-    expect(LOADING_HOLO_SLOT_SEC).toBeGreaterThanOrEqual(10);
-    expect(LOADING_HOLO_SLOT_SEC).toBeLessThanOrEqual(14);
-    expect(holoSideCycleSec(4)).toBe(52);
+  it("uses ~10s slot timing with quick fade exit", () => {
+    expect(LOADING_HOLO_SLOT_SEC).toBe(10);
+    expect(holoSideCycleSec(4)).toBe(40);
   });
 });
