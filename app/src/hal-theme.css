@@ -817,4 +817,147 @@
   .btn-hal--chip {
     min-height: 68px;
   }
+
+  .loading-holo-gallery {
+    display: none;
+  }
+}
+
+/* --- LOADING HOLO GALLERY (intro download) --- */
+.loading-holo-gallery {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.loading-holo-gallery__side {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: min(30vw, 240px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  padding: 10vh 0;
+}
+
+.loading-holo-gallery__side--left {
+  left: 0;
+  align-items: flex-start;
+  padding-left: clamp(10px, 2.5vw, 28px);
+}
+
+.loading-holo-gallery__side--right {
+  right: 0;
+  align-items: flex-end;
+  padding-right: clamp(10px, 2.5vw, 28px);
+}
+
+.loading-holo-gallery__frame {
+  position: relative;
+  width: clamp(88px, 16vw, 168px);
+  aspect-ratio: 1;
+  opacity: 0;
+  animation-name: holo-fade-cycle, holo-float-drift;
+  animation-timing-function: ease-in-out, ease-in-out;
+  animation-iteration-count: infinite, infinite;
+}
+
+.loading-holo-gallery__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 42, 42, 0.28);
+  filter: sepia(0.25) hue-rotate(-18deg) saturate(1.35) brightness(0.82) contrast(1.05);
+  box-shadow:
+    0 0 18px var(--hal-red-dim),
+    0 0 36px rgba(255, 42, 42, 0.12),
+    inset 0 0 20px rgba(255, 42, 42, 0.08);
+  mix-blend-mode: screen;
+}
+
+.loading-holo-gallery__glow {
+  position: absolute;
+  inset: -6px;
+  border-radius: 6px;
+  background: radial-gradient(ellipse at center, rgba(255, 42, 42, 0.22) 0%, transparent 72%);
+  filter: blur(8px);
+  opacity: 0.7;
+  animation: holo-glow-pulse 6s ease-in-out infinite;
+}
+
+.loading-holo-gallery__frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 3px;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(255, 42, 42, 0.06) 0px,
+    rgba(255, 42, 42, 0.06) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+  opacity: 0.45;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+.loading-holo-gallery__side--right .loading-holo-gallery__frame {
+  animation-direction: normal, reverse;
+}
+
+@keyframes holo-fade-cycle {
+  0%,
+  8%,
+  72%,
+  100% {
+    opacity: 0;
+  }
+  18%,
+  58% {
+    opacity: 0.52;
+  }
+  38% {
+    opacity: 0.32;
+  }
+}
+
+@keyframes holo-float-drift {
+  0%,
+  100% {
+    transform: translateY(0) translateX(0);
+  }
+  50% {
+    transform: translateY(-14px) translateX(6px);
+  }
+}
+
+@keyframes holo-glow-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+@media (max-width: 720px) {
+  .loading-holo-gallery__frame {
+    width: clamp(64px, 14vw, 96px);
+  }
+
+  .loading-holo-gallery__side {
+    width: min(22vw, 110px);
+    padding: 12vh 0;
+  }
+
+  .loading-holo-gallery__side .loading-holo-gallery__frame:nth-child(even) {
+    display: none;
+  }
 }

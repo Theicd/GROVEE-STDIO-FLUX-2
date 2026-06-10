@@ -7,6 +7,7 @@ import { formatBytes, formatSpeed } from "../formatBytes";
 import { DEFAULT_MODEL_ID, MODELS } from "../modelRegistry";
 import type { ModelLoadState } from "../types";
 import { CircularProgress } from "./CircularProgress";
+import { LoadingHoloGallery } from "./LoadingHoloGallery";
 
 type IntroScreenProps = {
   phase: "start" | "loading";
@@ -64,6 +65,7 @@ export function IntroScreen({
       dir="rtl"
     >
       <JervCanvas />
+      {showLoading ? <LoadingHoloGallery /> : null}
       <div className="scanlines" aria-hidden="true" />
 
       <div className="hal-landing__content">
