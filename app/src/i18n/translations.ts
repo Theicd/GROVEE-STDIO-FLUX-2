@@ -12,6 +12,7 @@ export type TranslationTree = {
     webgpuWarn: string;
     modelMeta: string;
     initialize: string;
+    initializeAlt: string;
     standby: string;
     firstLoadNote: string;
   };
@@ -63,6 +64,14 @@ export type TranslationTree = {
     rerun: string;
     del: string;
     ariaLabel: string;
+    prev: string;
+    next: string;
+    openImage: string;
+    close: string;
+    lightboxTitle: string;
+    shareTitle: string;
+    shareNative: string;
+    shareCopyImage: string;
   };
   generating: {
     title: string;
@@ -100,6 +109,7 @@ export const translations: Record<Locale, TranslationTree> = {
       webgpuWarn: "WebGPU לא זוהה — WASM עלול להיות איטי.",
       modelMeta: "512×512 · WebGPU · נשמר ב-cache אחרי טעינה ראשונה",
       initialize: "אתחול מודל",
+      initializeAlt: "לחצו עלי",
       standby: "> המתנה",
       firstLoadNote:
         "הכל רץ בדפדפן — ללא התקנה. טעינה ראשונה בלבד (~2GB ל-cache). ביקור חוזר: שניות.",
@@ -168,6 +178,14 @@ export const translations: Record<Locale, TranslationTree> = {
       rerun: "שוב",
       del: "מחק",
       ariaLabel: "תמונות שנוצרו",
+      prev: "תמונות קודמות",
+      next: "תמונות הבאות",
+      openImage: "הצג תמונה בגדול",
+      close: "סגור",
+      lightboxTitle: "תצוגת תמונה",
+      shareTitle: "שיתוף",
+      shareNative: "שיתוף מערכת",
+      shareCopyImage: "העתק תמונה",
     },
     generating: {
       title: "מעבד",
@@ -203,6 +221,7 @@ export const translations: Record<Locale, TranslationTree> = {
       webgpuWarn: "WebGPU not detected — WASM fallback may be slower.",
       modelMeta: "512×512 · WebGPU · cached after first load",
       initialize: "INITIALIZE MODEL",
+      initializeAlt: "PRESS ON ME",
       standby: "> STANDBY",
       firstLoadNote:
         "Runs in browser — no install. First load only (~2GB to cache). Return visits: seconds.",
@@ -271,6 +290,14 @@ export const translations: Record<Locale, TranslationTree> = {
       rerun: "RE-RUN",
       del: "DEL",
       ariaLabel: "Generated images",
+      prev: "Previous images",
+      next: "Next images",
+      openImage: "View full image",
+      close: "Close",
+      lightboxTitle: "Image preview",
+      shareTitle: "Share",
+      shareNative: "System share",
+      shareCopyImage: "Copy image",
     },
     generating: {
       title: "RENDERING",

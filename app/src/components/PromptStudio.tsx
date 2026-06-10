@@ -1,9 +1,8 @@
-import { APP_NAME } from "../appBranding";
 import { useLocale } from "../i18n/LocaleContext";
-import { SD15_BROWSER_AVAILABLE, MODELS } from "../modelRegistry";
+import { SD15_BROWSER_AVAILABLE } from "../modelRegistry";
 import { formatSdSettingsHint, type SdModelSettings } from "../modelSettings";
 
-import { LangToggle } from "./LangToggle";
+import { StudioTopBar } from "./StudioTopBar";
 
 type PromptStudioProps = {
   prompt: string;
@@ -41,55 +40,42 @@ export function PromptStudio({
   const { t, dir } = useLocale();
   const canGenerate =
     prompt.trim().length > 0 && !isGenerating && isModelLoaded && SD15_BROWSER_AVAILABLE;
-  const model = MODELS.sd15;
   const settingsHint = formatSdSettingsHint(sdSettings);
   const scaleLabel = `${sdSettings.width}×${sdSettings.height}`;
   const pct = Math.round(genProgress * 100);
 
   return (
     <div className="workspace-header" data-testid="composer-bar" dir={dir}>
-      <header className="hal-studio-bar">
-        <div className="hal-studio-bar__status" dir="ltr">
-          <span className="hal-pulse-dot" aria-hidden="true" />
-          <span className="hal-studio-bar__label">{APP_NAME}</span>
-        </div>
-        <div className="hal-studio-bar__meta" dir="ltr">
-          <span className="hal-meta-chip">
-            {t.studio.memoryOk} <strong>OK</strong>
-          </span>
-          <span className="hal-meta-chip">
-            {t.studio.model} <strong>{model.shortLabel}</strong>
-          </span>
-          <span className="hal-meta-chip hal-meta-chip--dim">{deviceLabel || "READY"}</span>
-          <LangToggle />
-        </div>
-        <p className="hal-studio-bar__tagline" dir="ltr">
-          {t.app.tagline}
-        </p>
-      </header>
+      <StudioTopBar deviceLabel={deviceLabel} />
 
       <section className="input-terminal">
-        <label className="input-terminal__label" htmlFor="prompt-input">
-          {t.studio.enterPrompt}
-        </label>
         <div className="input-terminal__row">
-          <input
-            id="prompt-input"
-            className="input-terminal__field"
-            type="text"
-            dir="auto"
-            placeholder={t.studio.promptPlaceholder}
-            aria-label={t.studio.enterPrompt}
-            value={prompt}
-            onChange={(e) => onPromptChange(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                if (canGenerate) onGenerate();
-              }
-            }}
-            disabled={isGenerating}
-          />
+          <div
+            className={`input-terminal__field-wrap${prompt.length === 0 ? " is-empty" : ""}`}
+          >
+            {prompt.length === 0 ? (
+              <span className="input-terminal__hint" aria-hidden="true">
+                {t.studio.promptPlaceholder}
+                <span className="input-terminal__hint-caret" />
+              </span>
+            ) : null}
+            <input
+              id="prompt-input"
+              className="input-terminal__field"
+              type="text"
+              dir="auto"
+              aria-label={t.studio.enterPrompt}
+              value={prompt}
+              onChange={(e) => onPromptChange(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  if (canGenerate) onGenerate();
+                }
+              }}
+              disabled={isGenerating}
+            />
+          </div>
           <div className="input-terminal__actions">
             <button
               type="button"
@@ -125,28 +111,38 @@ export function PromptStudio({
             )}
           </div>
         </div>
-        <div className="input-terminal__meta" dir="ltr" aria-live="polite">
-          <span>{settingsHint}</span>
-          <span>
-            {t.studio.scale} {scaleLabel}
-          </span>
-          {isGenerating ? (
-            <span className="input-terminal__progress" data-testid="inline-gen-progress">
-              <span className="input-terminal__status">{t.generating.title}</span>
-              <span className="input-terminal__progress-bar" aria-hidden="true">
-                <span className="input-terminal__progress-fill" style={{ width: `${pct}%` }} />
-              </span>
-              <span className="input-terminal__progress-pct">{pct}%</span>
-              {genTokenTotal > 0 ? (
-                <span className="input-terminal__progress-steps">
-                  {genTokenCount}/{genTokenTotal} {t.generating.steps}
-                </span>
-              ) : null}
+        <div className="input-terminal__rail" dir="ltr" aria-live="polite">
+          <div className="input-terminal__rail-group input-terminal__rail-group--params">
+            <span>{settingsHint}</span>
+            <span className="input-terminal__rail-dot" aria-hidden="true">
+              ·
             </span>
-          ) : (
-            <span className="input-terminal__status">{status}</span>
-          )}
-          {!SD15_BROWSER_AVAILABLE ? <span>{t.studio.sdUnavailable}</span> : null}
+            <span>{scaleLabel}</span>
+          </div>
+          <div
+            className={`input-terminal__rail-group input-terminal__rail-group--runtime${isGenerating ? " input-terminal__rail-group--active" : ""}`}
+            data-testid={isGenerating ? "inline-gen-progress" : undefined}
+          >
+            {isGenerating ? (
+              <>
+                <span className="input-terminal__status">{t.generating.title}</span>
+                <span className="input-terminal__progress-bar" aria-hidden="true">
+                  <span className="input-terminal__progress-fill" style={{ width: `${pct}%` }} />
+                </span>
+                <span className="input-terminal__progress-pct">{pct}%</span>
+                {genTokenTotal > 0 ? (
+                  <span className="input-terminal__progress-steps">
+                    {genTokenCount}/{genTokenTotal}
+                  </span>
+                ) : null}
+              </>
+            ) : (
+              <span className="input-terminal__status">{status}</span>
+            )}
+          </div>
+          {!SD15_BROWSER_AVAILABLE ? (
+            <span className="input-terminal__rail-warn">{t.studio.sdUnavailable}</span>
+          ) : null}
         </div>
       </section>
     </div>

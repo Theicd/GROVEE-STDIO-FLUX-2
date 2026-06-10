@@ -8,6 +8,7 @@ import { formatBytes, formatSpeed } from "../formatBytes";
 import { DEFAULT_MODEL_ID, MODELS } from "../modelRegistry";
 import type { ModelLoadState } from "../types";
 import { CircularProgress } from "./CircularProgress";
+import { IntroMarqueeFooter } from "./IntroMarqueeFooter";
 import { IntroTopBar } from "./IntroTopBar";
 import { LoadingHoloGallery } from "./LoadingHoloGallery";
 
@@ -44,12 +45,25 @@ export function IntroScreen({
   const compilePulse = sdProgress?.compiling === true;
   const typewriterText = useLocaleTypewriter();
   const [consoleLines, setConsoleLines] = useState<string[]>([t.intro.standby]);
+  const [showAltInitLabel, setShowAltInitLabel] = useState(false);
   const lastLogRef = useRef("");
 
   useEffect(() => {
     setConsoleLines([t.intro.standby]);
     lastLogRef.current = "";
   }, [t.intro.standby]);
+
+  useEffect(() => {
+    setShowAltInitLabel(false);
+  }, [t.intro.initialize, t.intro.initializeAlt]);
+
+  useEffect(() => {
+    if (phase !== "start") return;
+    const id = window.setInterval(() => {
+      setShowAltInitLabel((prev) => !prev);
+    }, 2800);
+    return () => window.clearInterval(id);
+  }, [phase]);
 
   const logLine = useMemo(() => {
     if (compilePulse) return `> COMPILE: ${sdProgress?.currentFile || "UNet"}…`;
@@ -93,8 +107,6 @@ export function IntroScreen({
           </p>
         </header>
 
-        <p className="hal-landing__note">{t.intro.firstLoadNote}</p>
-
         {!webgpu ? (
           <p className="hal-warn" role="alert">
             {t.intro.webgpuWarn}
@@ -103,19 +115,26 @@ export function IntroScreen({
 
         {phase === "start" ? (
           <div className="hal-landing__start">
-            <div className="hal-model-chip" data-testid="model-sd15" dir="ltr">
-              <span className="hal-model-chip__name">{model.label}</span>
-              <span className="hal-model-chip__meta">{t.intro.modelMeta}</span>
-            </div>
-
             <button
               type="button"
-              className="btn-hal"
+              className="btn-hal btn-hal--hero"
               data-testid="load-model"
               onClick={onLoad}
+              aria-label={`${t.intro.initialize} / ${t.intro.initializeAlt}`}
             >
               <span className="btn-hal__shine" aria-hidden="true" />
-              {t.intro.initialize}
+              <span className="btn-hal__label" aria-live="polite">
+                <span
+                  className={`btn-hal__label-text${showAltInitLabel ? "" : " is-visible"}`}
+                >
+                  {t.intro.initialize}
+                </span>
+                <span
+                  className={`btn-hal__label-text btn-hal__label-text--alt${showAltInitLabel ? " is-visible" : ""}`}
+                >
+                  {t.intro.initializeAlt}
+                </span>
+              </span>
             </button>
           </div>
         ) : (
@@ -153,6 +172,8 @@ export function IntroScreen({
           </div>
         )}
       </div>
+
+      <IntroMarqueeFooter />
     </div>
   );
 }

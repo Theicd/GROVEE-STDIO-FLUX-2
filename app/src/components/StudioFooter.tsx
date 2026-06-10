@@ -13,32 +13,42 @@ export function StudioFooter({ initialSuggestions, onPick, disabled = false }: S
   const { suggestions, animPhase } = useRotatingSuggestions(locale, initialSuggestions);
 
   return (
-    <footer className="studio-footer" data-testid="studio-footer" dir={dir}>
-      <p className="studio-footer__hint">{t.studio.quickPrompts}</p>
-      <div
-        className="studio-footer__chips hal-studio-landing__chips"
-        data-phase={animPhase}
-        aria-live="polite"
-        aria-atomic="true"
-      >
-        {suggestions.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            className="btn-hal btn-hal--chip hal-chip"
-            onClick={() => onPick(item.prompt)}
-            title={item.prompt}
-            disabled={disabled || animPhase !== "idle"}
-          >
-            <span className="btn-hal__shine" aria-hidden="true" />
-            <span className="hal-chip-icon" aria-hidden="true">
-              {item.icon}
-            </span>
-            <span className="hal-chip-label" dir={locale === "he" ? "rtl" : "ltr"}>
-              {item.label}
-            </span>
-          </button>
-        ))}
+    <footer
+      className="studio-footer"
+      data-testid="studio-footer"
+      dir={dir}
+      aria-label={t.studio.quickPrompts}
+    >
+      <div className="studio-footer__board">
+        <div
+          className="studio-footer__zones"
+          data-phase={animPhase}
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          {suggestions.map((item, index) => (
+            <div key={item.id} className="studio-footer__zone" data-slot={index + 1}>
+              <button
+                type="button"
+                className="studio-footer__suggestion"
+                onClick={() => onPick(item.prompt)}
+                title={item.prompt}
+                disabled={disabled || animPhase !== "idle"}
+              >
+                <span className="studio-footer__suggestion-icon" aria-hidden="true">
+                  {item.icon}
+                </span>
+                <span
+                  className="studio-footer__suggestion-label"
+                  dir={locale === "he" ? "rtl" : "ltr"}
+                >
+                  {item.label}
+                </span>
+              </button>
+            </div>
+          ))}
+        </div>
+        <span className="studio-footer__tag">{t.studio.quickPrompts}</span>
       </div>
     </footer>
   );

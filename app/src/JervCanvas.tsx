@@ -18,10 +18,20 @@ export function JervCanvas() {
     renderer.setClearColor(0x000000, 0);
     mount.appendChild(renderer.domElement);
 
+    const palette = [
+      new THREE.Color(0xff2a2a),
+      new THREE.Color(0xff5533),
+      new THREE.Color(0xff7a3d),
+      new THREE.Color(0x00e5ff),
+      new THREE.Color(0x2dd4bf),
+      new THREE.Color(0x10b981),
+      new THREE.Color(0x38bdf8),
+    ];
+
     const core = new THREE.IcosahedronGeometry(0.95, 1);
     const wire = new THREE.LineSegments(
       new THREE.WireframeGeometry(core),
-      new THREE.LineBasicMaterial({ color: 0xff2a2a, transparent: true, opacity: 0.55 }),
+      new THREE.LineBasicMaterial({ color: palette[0], transparent: true, opacity: 0.55 }),
     );
     scene.add(wire);
 
@@ -30,7 +40,7 @@ export function JervCanvas() {
       const ring = new THREE.Mesh(
         new THREE.TorusGeometry(1.35 + i * 0.28, 0.012, 8, 96),
         new THREE.MeshBasicMaterial({
-          color: 0xff2a2a,
+          color: palette[i % palette.length],
           transparent: true,
           opacity: 0.22 - i * 0.05,
         }),
@@ -42,12 +52,29 @@ export function JervCanvas() {
     }
 
     let raf = 0;
+    let colorPhase = 0;
+    const wireMat = wire.material as THREE.LineBasicMaterial;
+    const tempColor = new THREE.Color();
+
     const animate = () => {
-      wire.rotation.x += 0.0032;
-      wire.rotation.y += 0.0048;
+      colorPhase += 0.0035;
+      const idx = Math.floor(colorPhase) % palette.length;
+      const next = (idx + 1) % palette.length;
+      const blend = colorPhase - Math.floor(colorPhase);
+      tempColor.copy(palette[idx]).lerp(palette[next], blend);
+      wireMat.color.copy(tempColor);
+
       rings.forEach((ring, i) => {
         ring.rotation.z += 0.0018 + i * 0.0006;
+        const ringMat = ring.material as THREE.MeshBasicMaterial;
+        const ringIdx = (idx + i) % palette.length;
+        const ringNext = (ringIdx + 1) % palette.length;
+        tempColor.copy(palette[ringIdx]).lerp(palette[ringNext], blend);
+        ringMat.color.copy(tempColor);
       });
+
+      wire.rotation.x += 0.0032;
+      wire.rotation.y += 0.0048;
       renderer.render(scene, camera);
       raf = requestAnimationFrame(animate);
     };
