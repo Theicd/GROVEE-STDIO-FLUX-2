@@ -27,6 +27,12 @@ import { SettingsPanel } from "./components/SettingsPanel";
 import { StudioLanding } from "./components/StudioLanding";
 import { GenerationGallery } from "./components/GenerationGallery";
 import { GeneratingSplash } from "./components/GeneratingSplash";
+import {
+  deleteGalleryItem,
+  loadGalleryFromStore,
+  saveGalleryItem,
+  trimGalleryIfNeeded,
+} from "./galleryStore";
 import { useLocale } from "./i18n/LocaleContext";
 import { publishJanusQa, QA_AUTOGEN, QA_JANUS_MODE, QA_PROMPT } from "./janusQaProbe";
 
@@ -105,6 +111,7 @@ export default function App() {
   const [genProgress, setGenProgress] = useState(0);
   const [genTokens, setGenTokens] = useState({ count: 0, total: 0 });
   const [gallery, setGallery] = useState<GenerationItem[]>([]);
+  const galleryHydratedRef = useRef(false);
   const [workspaceVisible, setWorkspaceVisible] = useState(false);
 
   const landing = useMemo(() => pickLandingContent(t.studio.headlines), [t.studio.headlines]);
@@ -225,6 +232,7 @@ export default function App() {
             modelId: "sd15",
           };
           setGallery((prev) => [item, ...prev]);
+          void saveGalleryItem(item, msg.blob).then(() => trimGalleryIfNeeded());
           generatingModelRef.current = false;
           setIsGenerating(false);
           setGenProgress(0);
@@ -283,6 +291,27 @@ export default function App() {
     }
   }, [t.status.readyToLoad, phase, isLoaded, isGenerating]);
 
+  useEffect(() => {
+    if (galleryHydratedRef.current) return;
+    galleryHydratedRef.current = true;
+    void loadGalleryFromStore()
+      .then((items) => {
+        if (items.length) setGallery(items);
+      })
+      .catch(() => {
+        galleryHydratedRef.current = false;
+      });
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      setGallery((prev) => {
+        for (const item of prev) URL.revokeObjectURL(item.imageUrl);
+        return prev;
+      });
+    };
+  }, []);
+
   const loadModels = useCallback(() => {
     if (!SD15_BROWSER_AVAILABLE) {
       setError(tRef.current.errors.sdUnavailable);
@@ -336,6 +365,7 @@ export default function App() {
         return;
       }
       lastUserPromptRef.current = rawPrompt;
+      setPrompt("");
       setError(null);
       generatingModelRef.current = true;
       setIsGenerating(true);
@@ -444,6 +474,7 @@ export default function App() {
   };
 
   const deleteItem = (id: string) => {
+    void deleteGalleryItem(id);
     setGallery((prev) => {
       const item = prev.find((x) => x.id === id);
       if (item) URL.revokeObjectURL(item.imageUrl);
