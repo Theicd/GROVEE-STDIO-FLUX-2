@@ -853,7 +853,7 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: clamp(96px, 17vw, 176px);
+  width: clamp(108px, 19vw, 200px);
   aspect-ratio: 1;
   transform: translate(-50%, -50%);
   transform-style: preserve-3d;
@@ -913,57 +913,125 @@
   pointer-events: none;
 }
 
-/* One image per side: visible for 1/N of the cycle, then next takes over. */
+/*
+ * One image per side, 1/N of cycle (25% keyframes for 4 images).
+ * Per-image slot (~13s): 0–40% approach, 40–55% hold (~2s), 55–100% gradual fade.
+ */
 @keyframes holo-approach-slot {
-  0%,
-  3% {
+  /* --- approach: 0–40% of slot → 0–10% keyframes --- */
+  0% {
     opacity: 0;
-    transform: scale(0.15) translateZ(-320px) translateY(8px);
-    filter: blur(14px) brightness(0.55);
+    transform: scale(0.08) translateZ(-460px) translateY(10px);
+    filter: blur(18px) brightness(0.5);
     visibility: hidden;
   }
-  6% {
-    opacity: 0.06;
-    transform: scale(0.18) translateZ(-260px) translateY(6px);
-    filter: blur(12px) brightness(0.6);
+  1% {
+    opacity: 0;
+    transform: scale(0.08) translateZ(-460px) translateY(10px);
+    filter: blur(18px) brightness(0.5);
     visibility: visible;
   }
-  14% {
-    opacity: 0.45;
-    transform: scale(0.72) translateZ(-90px) translateY(2px);
-    filter: blur(4px) brightness(0.85);
+  4% {
+    opacity: 0.12;
+    transform: scale(0.28) translateZ(-300px) translateY(8px);
+    filter: blur(14px) brightness(0.62);
     visibility: visible;
   }
-  20% {
-    opacity: 0.7;
-    transform: scale(1) translateZ(0) translateY(0);
+  7% {
+    opacity: 0.48;
+    transform: scale(0.72) translateZ(-120px) translateY(4px);
+    filter: blur(5px) brightness(0.82);
+    visibility: visible;
+  }
+  10% {
+    opacity: 0.85;
+    transform: scale(1.15) translateZ(80px) translateY(0);
     filter: blur(0) brightness(1);
     visibility: visible;
   }
-  24% {
-    opacity: 0.2;
-    transform: scale(1.04) translateZ(36px) translateY(-4px);
-    filter: blur(2px) brightness(0.95);
+
+  /* --- hold: 40–55% of slot → 10–13.75% keyframes (~2s) --- */
+  13% {
+    opacity: 0.85;
+    transform: scale(1.14) translateZ(76px) translateY(-1px);
+    filter: blur(0) brightness(1);
     visibility: visible;
   }
-  25%,
+  13.75% {
+    opacity: 0.85;
+    transform: scale(1.12) translateZ(72px) translateY(-1px);
+    filter: blur(0) brightness(1);
+    visibility: visible;
+  }
+
+  /* --- fade: 55–100% of slot → 13.75–25% keyframes (~5.9s) --- */
+  16% {
+    opacity: 0.68;
+    transform: scale(1.1) translateZ(58px) translateY(-2px);
+    filter: blur(1px) brightness(0.96);
+    visibility: visible;
+  }
+  18.5% {
+    opacity: 0.45;
+    transform: scale(1.07) translateZ(44px) translateY(-3px);
+    filter: blur(2px) brightness(0.9);
+    visibility: visible;
+  }
+  21% {
+    opacity: 0.26;
+    transform: scale(1.04) translateZ(30px) translateY(-4px);
+    filter: blur(4px) brightness(0.82);
+    visibility: visible;
+  }
+  23% {
+    opacity: 0.12;
+    transform: scale(1.02) translateZ(18px) translateY(-5px);
+    filter: blur(6px) brightness(0.74);
+    visibility: visible;
+  }
+  24.5% {
+    opacity: 0.03;
+    transform: scale(1) translateZ(8px) translateY(-5px);
+    filter: blur(9px) brightness(0.66);
+    visibility: visible;
+  }
+  25% {
+    opacity: 0;
+    transform: scale(0.98) translateZ(0) translateY(-5px);
+    filter: blur(11px) brightness(0.6);
+    visibility: hidden;
+  }
+  25.01%,
   100% {
     opacity: 0;
-    transform: scale(0.15) translateZ(-320px) translateY(8px);
-    filter: blur(14px) brightness(0.55);
+    transform: scale(0.08) translateZ(-460px) translateY(10px);
+    filter: blur(18px) brightness(0.5);
     visibility: hidden;
   }
 }
 
 @keyframes holo-glow-follow {
   0%,
-  12%,
-  30%,
+  8%,
+  14.5%,
   100% {
     opacity: 0;
   }
+  10%,
+  13.75% {
+    opacity: 0.9;
+  }
+  16% {
+    opacity: 0.55;
+  }
   20% {
-    opacity: 0.85;
+    opacity: 0.2;
+  }
+  24% {
+    opacity: 0.04;
+  }
+  25% {
+    opacity: 0;
   }
 }
 

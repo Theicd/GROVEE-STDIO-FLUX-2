@@ -10,11 +10,20 @@ export const LOADING_HOLO_IMAGES = [
   "https://npub1hgne62teaw8nqtnu8d0rln6f5l7xr5fk63tya2wysyl8v6d3y7ks5h9kks.blossom.band/58c9db2329620a7045503ededebbd3aca6552d68992516af93be48147cd26bf6.png",
 ] as const;
 
-/** Seconds each image holds the slot on one side (8–12s range). */
-export const LOADING_HOLO_SLOT_SEC = 10;
+/** Seconds per image on one side (10–14s range). */
+export const LOADING_HOLO_SLOT_SEC = 13;
 
 /** Right side starts mid-cycle so sides do not pulse in sync. */
-export const LOADING_HOLO_RIGHT_OFFSET_SEC = 5;
+export const LOADING_HOLO_RIGHT_OFFSET_SEC = 6.5;
+
+/** Keyframe phases within each image slot (approach → hold → fade). */
+export const LOADING_HOLO_PHASE = {
+  approachEnd: 0.4,
+  holdEnd: 0.55,
+  peakOpacity: 0.85,
+  peakScale: 1.15,
+  startScale: 0.08,
+} as const;
 
 export function splitLoadingHoloSides(): { left: string[]; right: string[] } {
   const left: string[] = [];
