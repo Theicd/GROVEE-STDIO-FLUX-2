@@ -70,7 +70,7 @@ function markModelLoaded(
 }
 
 export default function App() {
-  const { t, dir } = useLocale();
+  const { t, dir, locale } = useLocale();
   const tRef = useRef(t);
   tRef.current = t;
 
@@ -114,7 +114,10 @@ export default function App() {
   const galleryHydratedRef = useRef(false);
   const [workspaceVisible, setWorkspaceVisible] = useState(false);
 
-  const landing = useMemo(() => pickLandingContent(t.studio.headlines), [t.studio.headlines]);
+  const landing = useMemo(
+    () => pickLandingContent(t.studio.headlines, locale),
+    [t.studio.headlines, locale],
+  );
   const showLanding = phase === "ready" && gallery.length === 0 && !isGenerating;
   const showIntro = shouldShowIntro(phase, isLoaded ? 1 : 0);
 

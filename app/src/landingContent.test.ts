@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   PROMPT_SUGGESTION_POOL,
   pickRandomSuggestions,
+  resolveSuggestionById,
   SUGGESTION_ROTATE_MS,
   suggestionEnterDurationMs,
   suggestionExitDurationMs,
@@ -27,10 +28,12 @@ describe("pickRandomSuggestions", () => {
     expect(overlap).toHaveLength(0);
   });
 
-  it("uses exact English prompts from the pool", () => {
-    const picked = pickRandomSuggestions(1)[0];
-    const source = PROMPT_SUGGESTION_POOL.find((p) => p.id === picked.id);
-    expect(source?.prompt).toBe(picked.prompt);
+  it("uses Hebrew labels and prompts when locale is he", () => {
+    const picked = pickRandomSuggestions(1, [], "he")[0];
+    expect(picked.label).toMatch(/[\u0590-\u05FF]/);
+    expect(picked.prompt).toMatch(/[\u0590-\u05FF]/);
+    const en = resolveSuggestionById(picked.id, "en");
+    expect(en?.prompt).not.toBe(picked.prompt);
   });
 
   it("uses slower rotation and staggered animation timing", () => {

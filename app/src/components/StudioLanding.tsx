@@ -6,6 +6,7 @@ import {
   suggestionEnterDurationMs,
   suggestionExitDurationMs,
   SUGGESTION_ROTATE_MS,
+  resolveSuggestionById,
   type LandingSuggestion,
 } from "../landingContent";
 
@@ -20,9 +21,9 @@ type ChipAnimPhase = "idle" | "exit" | "enter";
 const CHIP_COUNT = 3;
 
 export function StudioLanding({ headline, initialSuggestions, onPick }: StudioLandingProps) {
-  const { t, dir } = useLocale();
+  const { t, dir, locale } = useLocale();
   const [suggestions, setSuggestions] = useState<LandingSuggestion[]>(
-    () => initialSuggestions ?? pickRandomSuggestions(CHIP_COUNT),
+    () => initialSuggestions ?? pickRandomSuggestions(CHIP_COUNT, [], locale),
   );
   const [animPhase, setAnimPhase] = useState<ChipAnimPhase>("idle");
   const suggestionsRef = useRef(suggestions);
@@ -38,14 +39,20 @@ export function StudioLanding({ headline, initialSuggestions, onPick }: StudioLa
     setAnimPhase("exit");
 
     window.setTimeout(() => {
-      setSuggestions(pickRandomSuggestions(CHIP_COUNT, current.map((s) => s.id)));
+      setSuggestions(pickRandomSuggestions(CHIP_COUNT, current.map((s) => s.id), locale));
       setAnimPhase("enter");
 
       window.setTimeout(() => {
         setAnimPhase("idle");
       }, suggestionEnterDurationMs(CHIP_COUNT));
     }, suggestionExitDurationMs(CHIP_COUNT));
-  }, []);
+  }, [locale]);
+
+  useEffect(() => {
+    setSuggestions((prev) =>
+      prev.map((item) => resolveSuggestionById(item.id, locale) ?? item),
+    );
+  }, [locale]);
 
   useEffect(() => {
     const schedule = () => {
@@ -86,7 +93,7 @@ export function StudioLanding({ headline, initialSuggestions, onPick }: StudioLa
             <span className="hal-chip-icon" aria-hidden="true">
               {item.icon}
             </span>
-            <span className="hal-chip-label" dir="ltr">
+            <span className="hal-chip-label" dir={locale === "he" ? "rtl" : "ltr"}>
               {item.label}
             </span>
           </button>
