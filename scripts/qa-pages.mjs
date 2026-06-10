@@ -52,6 +52,10 @@ if (existsSync(indexPath)) {
   check(html.includes('property="og:image"'), "QA-PG-10 Open Graph image meta");
   check(html.includes("og-image.jpg"), "QA-PG-11 OG image URL");
   check(existsSync(join(dist, "og-image.jpg")), "QA-PG-12 og-image.jpg in dist");
+  const head = html.match(/<head>([\s\S]*?)<\/head>/i)?.[1] ?? "";
+  check(!/<script type="module"/i.test(head), "QA-PG-13 no module script in head");
+  check(!/<meta\s*\n/.test(html), "QA-PG-14 meta tags are single-line");
+  check(html.includes('property="og:description"'), "QA-PG-15 OG description meta");
 }
 
 if (fail > 0) process.exit(1);
