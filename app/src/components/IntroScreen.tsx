@@ -65,7 +65,7 @@ export function IntroScreen({
       dir="rtl"
     >
       <JervCanvas />
-      {showLoading ? <LoadingHoloGallery /> : null}
+      <LoadingHoloGallery />
       <div className="scanlines" aria-hidden="true" />
 
       <div className="hal-landing__content">

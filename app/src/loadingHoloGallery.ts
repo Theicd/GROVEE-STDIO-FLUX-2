@@ -1,4 +1,4 @@
-/** Holographic preview images shown on the intro screen during model download. */
+/** Holographic preview images on the intro screen (start + loading). */
 export const LOADING_HOLO_IMAGES = [
   "https://npub1hgne62teaw8nqtnu8d0rln6f5l7xr5fk63tya2wysyl8v6d3y7ks5h9kks.blossom.band/a3a3965e4fabd0cf744c37df37f79ccddc4e825648d42e2b737fe627a5e97c68.png",
   "https://npub1hgne62teaw8nqtnu8d0rln6f5l7xr5fk63tya2wysyl8v6d3y7ks5h9kks.blossom.band/47c3c15382e94ea71f08c76fe4ead909a7c399df8ab9b93a3560114454c6e1de.png",
@@ -10,10 +10,11 @@ export const LOADING_HOLO_IMAGES = [
   "https://npub1hgne62teaw8nqtnu8d0rln6f5l7xr5fk63tya2wysyl8v6d3y7ks5h9kks.blossom.band/58c9db2329620a7045503ededebbd3aca6552d68992516af93be48147cd26bf6.png",
 ] as const;
 
-/** Fade cycle length — stagger delays are fractions of this. */
-export const LOADING_HOLO_CYCLE_MS = 14_000;
+/** Seconds each image holds the slot on one side (8–12s range). */
+export const LOADING_HOLO_SLOT_SEC = 10;
 
-export const LOADING_HOLO_STAGGER_MS = 3_500;
+/** Right side starts mid-cycle so sides do not pulse in sync. */
+export const LOADING_HOLO_RIGHT_OFFSET_SEC = 5;
 
 export function splitLoadingHoloSides(): { left: string[]; right: string[] } {
   const left: string[] = [];
@@ -23,4 +24,8 @@ export function splitLoadingHoloSides(): { left: string[]; right: string[] } {
     else right.push(url);
   });
   return { left, right };
+}
+
+export function holoSideCycleSec(imageCount: number): number {
+  return imageCount * LOADING_HOLO_SLOT_SEC;
 }

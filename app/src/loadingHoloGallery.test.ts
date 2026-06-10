@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { LOADING_HOLO_IMAGES, splitLoadingHoloSides } from "./loadingHoloGallery";
+import {
+  LOADING_HOLO_IMAGES,
+  LOADING_HOLO_SLOT_SEC,
+  holoSideCycleSec,
+  splitLoadingHoloSides,
+} from "./loadingHoloGallery";
 
 describe("loadingHoloGallery", () => {
   it("defines eight blossom image URLs", () => {
@@ -16,5 +21,11 @@ describe("loadingHoloGallery", () => {
     expect(right).toHaveLength(4);
     expect(left).toEqual(LOADING_HOLO_IMAGES.filter((_, i) => i % 2 === 0));
     expect(right).toEqual(LOADING_HOLO_IMAGES.filter((_, i) => i % 2 === 1));
+  });
+
+  it("uses 8–12s slot timing for independent side cycles", () => {
+    expect(LOADING_HOLO_SLOT_SEC).toBeGreaterThanOrEqual(8);
+    expect(LOADING_HOLO_SLOT_SEC).toBeLessThanOrEqual(12);
+    expect(holoSideCycleSec(4)).toBe(40);
   });
 });
