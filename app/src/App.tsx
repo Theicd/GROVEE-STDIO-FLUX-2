@@ -24,9 +24,9 @@ import type { AppPhase, GenerationItem, ModelLoadState, WorkerToMain } from "./t
 import { IntroScreen } from "./components/IntroScreen";
 import { PromptStudio } from "./components/PromptStudio";
 import { SettingsPanel } from "./components/SettingsPanel";
-import { StudioLanding } from "./components/StudioLanding";
+import { StudioEmptyHero } from "./components/StudioEmptyHero";
+import { StudioFooter } from "./components/StudioFooter";
 import { GenerationGallery } from "./components/GenerationGallery";
-import { GeneratingSplash } from "./components/GeneratingSplash";
 import {
   deleteGalleryItem,
   loadGalleryFromStore,
@@ -118,7 +118,7 @@ export default function App() {
     () => pickLandingContent(t.studio.headlines, locale),
     [t.studio.headlines, locale],
   );
-  const showLanding = phase === "ready" && gallery.length === 0 && !isGenerating;
+  const showEmptyHero = phase === "ready" && gallery.length === 0 && !isGenerating;
   const showIntro = shouldShowIntro(phase, isLoaded ? 1 : 0);
 
   const recomputeAggregate = useCallback((next: Partial<Record<ModelId, ModelLoadState>>) => {
@@ -526,6 +526,9 @@ export default function App() {
         isGenerating={isGenerating}
         isModelLoaded={isLoaded}
         settingsOpen={settingsOpen}
+        genProgress={genProgress}
+        genTokenCount={genTokens.count}
+        genTokenTotal={genTokens.total}
         onPromptChange={setPrompt}
         onOpenSettings={() => setSettingsOpen((v) => !v)}
         onGenerate={() => runGenerate(prompt)}
@@ -533,22 +536,7 @@ export default function App() {
       />
 
       <div className="studio-body">
-        {isGenerating ? (
-          <GeneratingSplash
-            progress={genProgress}
-            tokenCount={genTokens.count}
-            tokenTotal={genTokens.total}
-            label="steps"
-          />
-        ) : null}
-
-        {showLanding ? (
-          <StudioLanding
-            headline={landing.headline}
-            initialSuggestions={landing.suggestions}
-            onPick={(p) => setPrompt(p)}
-          />
-        ) : null}
+        {showEmptyHero ? <StudioEmptyHero headline={landing.headline} /> : null}
 
         <GenerationGallery
           items={gallery}
@@ -559,6 +547,12 @@ export default function App() {
           onDelete={deleteItem}
         />
       </div>
+
+      <StudioFooter
+        initialSuggestions={landing.suggestions}
+        onPick={(p) => setPrompt(p)}
+        disabled={isGenerating}
+      />
 
       <SettingsPanel
         open={settingsOpen}

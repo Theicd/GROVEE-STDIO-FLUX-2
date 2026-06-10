@@ -13,6 +13,9 @@ type PromptStudioProps = {
   isGenerating: boolean;
   isModelLoaded: boolean;
   settingsOpen: boolean;
+  genProgress?: number;
+  genTokenCount?: number;
+  genTokenTotal?: number;
   onPromptChange: (v: string) => void;
   onOpenSettings: () => void;
   onGenerate: () => void;
@@ -27,6 +30,9 @@ export function PromptStudio({
   isGenerating,
   isModelLoaded,
   settingsOpen,
+  genProgress = 0,
+  genTokenCount = 0,
+  genTokenTotal = 0,
   onPromptChange,
   onOpenSettings,
   onGenerate,
@@ -38,7 +44,7 @@ export function PromptStudio({
   const model = MODELS.sd15;
   const settingsHint = formatSdSettingsHint(sdSettings);
   const scaleLabel = `${sdSettings.width}×${sdSettings.height}`;
-  const displayStatus = isGenerating ? t.studio.generating : status;
+  const pct = Math.round(genProgress * 100);
 
   return (
     <div className="workspace-header" data-testid="composer-bar" dir={dir}>
@@ -119,12 +125,27 @@ export function PromptStudio({
             )}
           </div>
         </div>
-        <div className="input-terminal__meta" dir="ltr">
+        <div className="input-terminal__meta" dir="ltr" aria-live="polite">
           <span>{settingsHint}</span>
           <span>
             {t.studio.scale} {scaleLabel}
           </span>
-          <span className="input-terminal__status">{displayStatus}</span>
+          {isGenerating ? (
+            <span className="input-terminal__progress" data-testid="inline-gen-progress">
+              <span className="input-terminal__status">{t.generating.title}</span>
+              <span className="input-terminal__progress-bar" aria-hidden="true">
+                <span className="input-terminal__progress-fill" style={{ width: `${pct}%` }} />
+              </span>
+              <span className="input-terminal__progress-pct">{pct}%</span>
+              {genTokenTotal > 0 ? (
+                <span className="input-terminal__progress-steps">
+                  {genTokenCount}/{genTokenTotal} {t.generating.steps}
+                </span>
+              ) : null}
+            </span>
+          ) : (
+            <span className="input-terminal__status">{status}</span>
+          )}
           {!SD15_BROWSER_AVAILABLE ? <span>{t.studio.sdUnavailable}</span> : null}
         </div>
       </section>
