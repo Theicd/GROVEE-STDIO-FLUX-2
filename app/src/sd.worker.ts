@@ -3,26 +3,19 @@
 
 
 import { SD_DEFAULT_GENERATION } from "./generationConfig";
-
-import { MODELS, SD15_BROWSER_AVAILABLE, SD15_UNAVAILABLE_MESSAGE } from "./modelRegistry";
-
 import {
-
   imageDataToBlob,
-
   SD15_ONNX_TOTAL_BYTES,
-
   Sd15Pipeline,
-
   type SdLoadProgress,
-
 } from "./sdPipeline";
-
 import type { SdGenerationParams, SdMainToWorker, WorkerToMain } from "./types";
 
+/** @deprecated Archived SD 1.5 worker — not wired in App.tsx */
+const SD15_ARCHIVED_AVAILABLE = false;
+const SD15_ARCHIVED_MESSAGE = "SD 1.5 worker archived";
 
-
-const ESTIMATED_MODEL_BYTES = MODELS.sd15.estimatedBytes || SD15_ONNX_TOTAL_BYTES;
+const ESTIMATED_MODEL_BYTES = SD15_ONNX_TOTAL_BYTES;
 
 
 
@@ -78,7 +71,7 @@ function postDownloadProgress() {
 
     type: "download_progress",
 
-    modelId: "sd15",
+    modelId: "flux",
 
     loaded,
 
@@ -106,7 +99,7 @@ function handleLoadProgress(p: SdLoadProgress) {
 
     currentFileTotal = 0;
 
-    post({ type: "status", text: `Downloading ${p.file}…` });
+    post({ type: "status", text: `Loading engine: ${p.file}…` });
 
     postDownloadProgress();
 
@@ -134,7 +127,7 @@ function handleLoadProgress(p: SdLoadProgress) {
 
   if (p.status === "compile") {
 
-    post({ type: "status", text: `Compiling ${p.file}…` });
+    post({ type: "status", text: `Preparing GPU: ${p.file}…` });
 
     return;
 
@@ -185,7 +178,7 @@ async function ensureLoaded(): Promise<void> {
   if (pipeline) {
     post({
       type: "loaded",
-      modelId: "sd15",
+      modelId: "flux",
       device: webgpuAvailable
         ? fp16Supported
           ? "webgpu (fp16)"
@@ -201,9 +194,9 @@ async function ensureLoaded(): Promise<void> {
 
   loadPromise = (async () => {
 
-    if (!SD15_BROWSER_AVAILABLE) {
+    if (!SD15_ARCHIVED_AVAILABLE) {
 
-      throw new Error(SD15_UNAVAILABLE_MESSAGE);
+      throw new Error(SD15_ARCHIVED_MESSAGE);
 
     }
 
@@ -211,9 +204,9 @@ async function ensureLoaded(): Promise<void> {
 
     resetDownloadProgress();
 
-    post({ type: "status", text: "Connecting to Hugging Face…" });
+    post({ type: "status", text: "Connecting inference engine…" });
 
-    post({ type: "status", text: "Loading SD 1.5 ONNX pipeline…" });
+    post({ type: "status", text: "Loading SD 1.5 engine…" });
 
 
 
@@ -227,7 +220,7 @@ async function ensureLoaded(): Promise<void> {
 
       type: "loaded",
 
-      modelId: "sd15",
+      modelId: "flux",
 
       device: webgpuAvailable
 

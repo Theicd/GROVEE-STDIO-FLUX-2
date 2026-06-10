@@ -28,9 +28,9 @@ export function JervCanvas() {
       new THREE.Color(0x38bdf8),
     ];
 
-    const core = new THREE.IcosahedronGeometry(0.95, 1);
+    const knot = new THREE.TorusKnotGeometry(0.52, 0.14, 96, 16, 2, 3);
     const wire = new THREE.LineSegments(
-      new THREE.WireframeGeometry(core),
+      new THREE.WireframeGeometry(knot),
       new THREE.LineBasicMaterial({ color: palette[0], transparent: true, opacity: 0.55 }),
     );
     scene.add(wire);
@@ -92,7 +92,7 @@ export function JervCanvas() {
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", onResize);
-      core.dispose();
+      knot.dispose();
       wire.geometry.dispose();
       (wire.material as THREE.Material).dispose();
       rings.forEach((ring) => {

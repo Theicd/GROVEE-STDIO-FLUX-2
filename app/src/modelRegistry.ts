@@ -1,10 +1,11 @@
-/** UI and runtime model id — GROVEE STDIO ships SD 1.5 only. */
-export type ModelId = "sd15";
+import { FLUX_ONNX_TOTAL_BYTES } from "./fluxPipeline";
+
+/** UI and runtime model id — ships FLUX.2 Klein 4B low-bit WebGPU. */
+export type ModelId = "flux";
 
 export type ModelDefinition = {
   id: ModelId;
   hfId: string;
-  onnxRepo?: string;
   estimatedBytes: number;
   label: string;
   shortLabel: string;
@@ -14,58 +15,64 @@ export type ModelDefinition = {
   introBlurb: string;
 };
 
-export const SD15_BROWSER_AVAILABLE = true;
+export const FLUX_BROWSER_AVAILABLE = true;
 
-export const SD15_UNAVAILABLE_MESSAGE =
-  "SD 1.5 requires WebGPU or WASM. Use Chrome/Edge 113+ with WebGPU enabled.";
+export const FLUX_UNAVAILABLE_MESSAGE =
+  "FLUX.2 Klein requires WebGPU. Use Chrome/Edge 113+ with WebGPU enabled.";
 
-export const DEFAULT_MODEL_ID: ModelId = "sd15";
+/** @deprecated Use FLUX_BROWSER_AVAILABLE */
+export const SD15_BROWSER_AVAILABLE = FLUX_BROWSER_AVAILABLE;
+
+/** @deprecated Use FLUX_UNAVAILABLE_MESSAGE */
+export const SD15_UNAVAILABLE_MESSAGE = FLUX_UNAVAILABLE_MESSAGE;
+
+export const DEFAULT_MODEL_ID: ModelId = "flux";
 
 /** Models shown on intro and available for load/generate. */
-export const UI_MODEL_IDS: ModelId[] = ["sd15"];
+export const UI_MODEL_IDS: ModelId[] = ["flux"];
 
 export const ALL_MODEL_IDS: ModelId[] = UI_MODEL_IDS;
 
 export const MODELS: Record<ModelId, ModelDefinition> = {
-  sd15: {
-    id: "sd15",
-    hfId: "ehristoforu/stable-diffusion-v1-5-tiny",
-    onnxRepo: "microsoft/stable-diffusion-v1.5-webnn",
-    estimatedBytes: 2_064_947_141,
-    label: "Stable Diffusion 1.5",
-    shortLabel: "SD 1.5",
+  flux: {
+    id: "flux",
+    hfId: "ryanhlewis/flux2-klein-4b-webgpu-lowbit",
+    estimatedBytes: FLUX_ONNX_TOTAL_BYTES,
+    label: "FLUX.2 Klein 4B",
+    shortLabel: "FLUX.2",
     resolution: "512×512",
     pipelineType: "text-to-image",
-    supportsNativeNegative: true,
-    introBlurb: "~2.0 GB · 512×512 · WebGPU or WASM",
+    supportsNativeNegative: false,
+    introBlurb: "~12 GB · WebGPU · low-bit",
   },
 };
 
 export function isModelLoadable(id: ModelId): boolean {
-  return id === "sd15" && SD15_BROWSER_AVAILABLE;
+  return id === "flux" && FLUX_BROWSER_AVAILABLE;
 }
 
 export function normalizeSelection(selected: ModelId[]): ModelId[] {
-  return selected.includes("sd15") ? ["sd15"] : [];
+  return selected.includes("flux") ? ["flux"] : [];
 }
 
 export function loadableModelsForSelection(_selected: ModelId[]): ModelId[] {
-  return SD15_BROWSER_AVAILABLE ? ["sd15"] : [];
+  return FLUX_BROWSER_AVAILABLE ? ["flux"] : [];
 }
 
 export function totalBytesForSelection(_selected: ModelId[]): number {
-  return SD15_BROWSER_AVAILABLE ? MODELS.sd15.estimatedBytes : 0;
+  return FLUX_BROWSER_AVAILABLE ? MODELS.flux.estimatedBytes : 0;
 }
 
 export function isLoadSelectionValid(_selected: ModelId[]): boolean {
-  return SD15_BROWSER_AVAILABLE;
+  return FLUX_BROWSER_AVAILABLE;
 }
 
-export function getModel(id: ModelId): ModelDefinition {
-  return MODELS[id];
+export function getModel(id?: string): ModelDefinition {
+  if (id === "flux") return MODELS.flux;
+  return MODELS.flux;
 }
 
 export function selectionSummary(_selected: ModelId[]): string {
-  if (!SD15_BROWSER_AVAILABLE) return "SD 1.5 unavailable in this browser";
-  return `${MODELS.sd15.shortLabel} · ~2.0 GB · 512×512`;
+  if (!FLUX_BROWSER_AVAILABLE) return "FLUX.2 unavailable in this browser";
+  return `${MODELS.flux.shortLabel} · ~3.5 GB · WebGPU`;
 }

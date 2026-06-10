@@ -17,3 +17,17 @@ export function formatSpeed(bytesPerSec: number): string {
   if (!Number.isFinite(bytesPerSec) || bytesPerSec < 512) return "—";
   return `${formatBytes(bytesPerSec)}/s`;
 }
+
+/** Byte ratio → percent (0–100), for download progress UI. */
+export function downloadProgressPercent(loaded: number, total: number): number {
+  if (!Number.isFinite(loaded) || !Number.isFinite(total) || total <= 0) return 0;
+  return Math.min(100, Math.max(0, (loaded / total) * 100));
+}
+
+/** Show fractional percent below 1% (two decimals when total is multi-GB). */
+export function formatDownloadPercent(percent: number): string {
+  if (!Number.isFinite(percent) || percent <= 0) return "0";
+  if (percent < 0.1) return percent.toFixed(2);
+  if (percent < 1) return percent.toFixed(1);
+  return String(Math.round(percent));
+}

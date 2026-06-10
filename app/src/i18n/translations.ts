@@ -87,6 +87,14 @@ export type TranslationTree = {
     notLoaded: string;
     compiling: string;
     downloading: string;
+    genPhases: {
+      tokenize: string;
+      gpu_prep: string;
+      encode: string;
+      denoise: string;
+      vae: string;
+      done: string;
+    };
   };
   errors: {
     sdUnavailable: string;
@@ -96,7 +104,7 @@ export type TranslationTree = {
 export const translations: Record<Locale, TranslationTree> = {
   he: {
     app: {
-      tagline: "SD 1.5 // מנוע דפדפן",
+      tagline: "FLUX.2 // מנוע דפדפן",
       mark: "GE",
     },
     intro: {
@@ -104,15 +112,15 @@ export const translations: Record<Locale, TranslationTree> = {
         "מערכת מוכנה להפעלה...",
         "טוען מנוע יצירת תמונות...",
         "אני ממתין להוראותיך.",
-        "SD 1.5 · WebGPU · ללא התקנה",
+        "FLUX.2 Klein · WebGPU · ללא התקנה",
       ],
-      webgpuWarn: "WebGPU לא זוהה — WASM עלול להיות איטי.",
-      modelMeta: "512×512 · WebGPU · נשמר ב-cache אחרי טעינה ראשונה",
+      webgpuWarn: "WebGPU לא זוהה — FLUX.2 דורש WebGPU.",
+      modelMeta: "512×512 · WebGPU · ~12GB · נשמר מקומית אחרי הורדה",
       initialize: "אתחול מודל",
       initializeAlt: "לחצו עלי",
       standby: "> המתנה",
       firstLoadNote:
-        "הכל רץ בדפדפן — ללא התקנה. טעינה ראשונה בלבד (~2GB ל-cache). ביקור חוזר: שניות.",
+        "הכל רץ בדפדפן — ללא התקנה. הורדה ראשונה ~12GB נשמרת מקומית; רענון דף לא מוריד מחדש.",
     },
     topBar: {
       browserStudio: "סטודיו דפדפן",
@@ -131,7 +139,7 @@ export const translations: Record<Locale, TranslationTree> = {
       settings: "הגדרות",
       generating: "מייצר…",
       scale: "גודל",
-      sdUnavailable: "SD לא זמין",
+      sdUnavailable: "FLUX לא זמין",
       quickPrompts: "הצעות מהירות",
       headlines: [
         "מה תיצור היום?",
@@ -144,7 +152,7 @@ export const translations: Record<Locale, TranslationTree> = {
       ],
     },
     settings: {
-      title: "Stable Diffusion 1.5",
+      title: "FLUX.2 Klein 4B",
       subtitle: "הגדרות יצירה",
       close: "סגור הגדרות",
       modelId: "מזהה מודל",
@@ -152,8 +160,8 @@ export const translations: Record<Locale, TranslationTree> = {
       resolution: "רזולוציה",
       cfg: "Guidance scale (CFG)",
       steps: "שלבי הסקה",
-      stepsHint: "5–50 שלבים (מתוך לוח זמנים SD 1.5)",
-      negativeNote: "SD 1.5 משתמש ב-negative_prompt נפרד.",
+      stepsHint: "1–8 שלבים (ברירת מחדל 4)",
+      negativeNote: "FLUX.2 Klein לא תומך ב-negative prompt נפרד — השתמש בסגנון ובפרומפט מפורט.",
       stylePreset: "סגנון",
       negativePrompt: "פרומפט שלילי",
       negativeHint:
@@ -192,23 +200,31 @@ export const translations: Record<Locale, TranslationTree> = {
       steps: "שלבים",
     },
     status: {
-      readyToLoad: "מוכן לטעינת SD 1.5",
+      readyToLoad: "מוכן לטעינת FLUX.2 Klein",
       preparingDownload: "מכין הורדה…",
-      modelReady: "SD 1.5 מוכן — הסטודיו פתוח",
+      modelReady: "FLUX.2 מוכן — הסטודיו פתוח",
       generating: "מייצר…",
       imageReady: "התמונה מוכנה",
       stopped: "היצירה הופסקה",
-      notLoaded: "SD 1.5 עדיין לא נטען",
-      compiling: "SD 1.5: קומפילציה ב-WebGPU (2–5 דק׳)…",
-      downloading: "SD 1.5: מוריד",
+      notLoaded: "FLUX.2 עדיין לא נטען",
+      compiling: "FLUX.2: הכנת transformer ב-WebGPU…",
+      downloading: "FLUX.2: מוריד",
+      genPhases: {
+        tokenize: "מקודד פרומפט",
+        gpu_prep: "מכין GPU לרזולוציה",
+        encode: "מקודד טקסט",
+        denoise: "מייצר",
+        vae: "מפענח תמונה",
+        done: "מסיים",
+      },
     },
     errors: {
-      sdUnavailable: "SD 1.5 דורש WebGPU או WASM. השתמש ב-Chrome/Edge 113+ עם WebGPU.",
+      sdUnavailable: "FLUX.2 Klein דורש WebGPU. השתמש ב-Chrome/Edge 113+ עם WebGPU.",
     },
   },
   en: {
     app: {
-      tagline: "SD 1.5 // BROWSER ENGINE",
+      tagline: "FLUX.2 // BROWSER ENGINE",
       mark: "GE",
     },
     intro: {
@@ -216,15 +232,15 @@ export const translations: Record<Locale, TranslationTree> = {
         "System ready for initialization...",
         "Loading image generation engine...",
         "Awaiting your instructions.",
-        "SD 1.5 · WebGPU · browser only",
+        "FLUX.2 Klein · WebGPU · browser only",
       ],
-      webgpuWarn: "WebGPU not detected — WASM fallback may be slower.",
-      modelMeta: "512×512 · WebGPU · cached after first load",
+      webgpuWarn: "WebGPU not detected — FLUX.2 requires WebGPU.",
+      modelMeta: "512×512 · WebGPU · ~12GB · persisted locally after download",
       initialize: "INITIALIZE MODEL",
       initializeAlt: "PRESS ON ME",
       standby: "> STANDBY",
       firstLoadNote:
-        "Runs in browser — no install. First load only (~2GB to cache). Return visits: seconds.",
+        "Runs in browser — no install. First ~12GB download is saved locally; refresh won't re-download.",
     },
     topBar: {
       browserStudio: "BROWSER STUDIO",
@@ -243,7 +259,7 @@ export const translations: Record<Locale, TranslationTree> = {
       settings: "Settings",
       generating: "GENERATING…",
       scale: "SCALE",
-      sdUnavailable: "SD UNAVAILABLE",
+      sdUnavailable: "FLUX UNAVAILABLE",
       quickPrompts: "QUICK PROMPTS",
       headlines: [
         "What will you create today?",
@@ -256,7 +272,7 @@ export const translations: Record<Locale, TranslationTree> = {
       ],
     },
     settings: {
-      title: "Stable Diffusion 1.5",
+      title: "FLUX.2 Klein 4B",
       subtitle: "Generation settings",
       close: "Close settings",
       modelId: "Model ID",
@@ -264,8 +280,8 @@ export const translations: Record<Locale, TranslationTree> = {
       resolution: "Resolution",
       cfg: "Guidance scale (CFG)",
       steps: "Inference steps",
-      stepsHint: "5–50 steps (subsampled from SD 1.5 schedule)",
-      negativeNote: "SD 1.5 uses native negative_prompt (separate channel).",
+      stepsHint: "1–8 steps (default 4)",
+      negativeNote: "FLUX.2 Klein has no native negative prompt — use style presets and detailed prompts.",
       stylePreset: "Style preset",
       negativePrompt: "Negative prompt",
       negativeHint:
@@ -304,19 +320,27 @@ export const translations: Record<Locale, TranslationTree> = {
       steps: "steps",
     },
     status: {
-      readyToLoad: "Ready to load SD 1.5",
+      readyToLoad: "Ready to load FLUX.2 Klein",
       preparingDownload: "Preparing download…",
-      modelReady: "SD 1.5 ready — studio open",
+      modelReady: "FLUX.2 ready — studio open",
       generating: "Generating…",
       imageReady: "Image ready",
       stopped: "Generation stopped",
-      notLoaded: "SD 1.5 is not loaded yet",
-      compiling: "SD 1.5: compiling on WebGPU (2–5 min)…",
-      downloading: "SD 1.5: downloading",
+      notLoaded: "FLUX.2 is not loaded yet",
+      compiling: "FLUX.2: preparing transformer on WebGPU…",
+      downloading: "FLUX.2: downloading",
+      genPhases: {
+        tokenize: "Tokenizing prompt",
+        gpu_prep: "Preparing GPU for resolution",
+        encode: "Encoding text",
+        denoise: "Rendering",
+        vae: "Decoding image",
+        done: "Finishing",
+      },
     },
     errors: {
       sdUnavailable:
-        "SD 1.5 requires WebGPU or WASM. Use Chrome/Edge 113+ with WebGPU enabled.",
+        "FLUX.2 Klein requires WebGPU. Use Chrome/Edge 113+ with WebGPU enabled.",
     },
   },
 };

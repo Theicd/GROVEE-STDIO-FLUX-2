@@ -1,53 +1,54 @@
 import { describe, expect, it } from "vitest";
 import { loadableModelsForSelection } from "./modelRegistry";
 import {
+  hasBackgroundDownloads,
   listPendingModels,
   pickFirstReadyModel,
+  resolveQueueModelAt,
   shouldEnterStudio,
   shouldShowIntro,
 } from "./loadOrchestration";
+import type { ModelId } from "./modelRegistry";
 
-describe("shouldShowIntro", () => {
-  it("shows intro on start", () => {
+describe("loadOrchestration", () => {
+  it("shows intro on start and during loading before any model is ready", () => {
     expect(shouldShowIntro("start", 0)).toBe(true);
-  });
-
-  it("shows intro while loading with zero loaded models", () => {
     expect(shouldShowIntro("loading", 0)).toBe(true);
-  });
-
-  it("hides intro once SD is ready during loading", () => {
     expect(shouldShowIntro("loading", 1)).toBe(false);
-  });
-});
-
-describe("shouldEnterStudio", () => {
-  it("enters studio when loading and SD ready", () => {
-    expect(shouldEnterStudio("loading", ["sd15"])).toBe(true);
+    expect(shouldShowIntro("ready", 1)).toBe(false);
   });
 
-  it("does not enter studio before load", () => {
+  it("enters studio when loading completes with a loaded model", () => {
     expect(shouldEnterStudio("loading", [])).toBe(false);
-  });
-});
-
-describe("pickFirstReadyModel", () => {
-  it("returns sd15 when loaded", () => {
-    expect(pickFirstReadyModel(["sd15"])).toBe("sd15");
+    expect(shouldEnterStudio("loading", ["flux"])).toBe(true);
+    expect(shouldEnterStudio("start", ["flux"])).toBe(false);
   });
 
-  it("returns null for empty list", () => {
-    expect(pickFirstReadyModel([])).toBeNull();
-  });
-});
-
-describe("sd-only load flow", () => {
-  it("load queue is always sd15", () => {
-    expect(loadableModelsForSelection(["sd15"])).toEqual(["sd15"]);
+  it("returns flux when loaded", () => {
+    expect(pickFirstReadyModel(["flux"])).toBe("flux");
+    expect(pickFirstReadyModel([])).toBe(null);
   });
 
-  it("has no pending models after SD ready", () => {
-    const progress = { sd15: { done: true, status: "Ready" } };
-    expect(listPendingModels(progress, ["sd15"])).toEqual([]);
+  it("load queue is always flux", () => {
+    expect(loadableModelsForSelection(["flux"])).toEqual(["flux"]);
+  });
+
+  it("lists no pending models when flux is done", () => {
+    const progress = { flux: { done: true, status: "Ready" } };
+    expect(listPendingModels(progress, ["flux"])).toEqual([]);
+  });
+
+  it("resolveQueueModelAt skips loaded and failed", () => {
+    const queue: ModelId[] = ["flux"];
+    const failed = new Set<ModelId>();
+    expect(resolveQueueModelAt(queue, 0, ["flux"], failed)).toBe(null);
+    expect(resolveQueueModelAt(queue, 0, [], failed)).toBe("flux");
+    failed.add("flux");
+    expect(resolveQueueModelAt(queue, 0, [], failed)).toBe(null);
+  });
+
+  it("hasBackgroundDownloads when queue has pending", () => {
+    expect(hasBackgroundDownloads(["flux"], [], new Set())).toBe(true);
+    expect(hasBackgroundDownloads(["flux"], ["flux"], new Set())).toBe(false);
   });
 });

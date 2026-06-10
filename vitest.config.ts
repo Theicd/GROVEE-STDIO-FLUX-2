@@ -8,10 +8,7 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["app/src/**/*.test.ts"],
-    exclude: [
-      "app/src/fluxPipeline.test.ts",
-      "app/src/sanaPipeline.test.ts",
-    ],
+    exclude: ["app/src/sanaPipeline.test.ts"],
   },
   resolve: {
     alias: {

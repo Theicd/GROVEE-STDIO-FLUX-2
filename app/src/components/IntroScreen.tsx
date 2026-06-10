@@ -4,7 +4,7 @@ import { APP_NAME } from "../appBranding";
 import { useLocaleTypewriter } from "../hooks/useLocaleTypewriter";
 import { useLocale } from "../i18n/LocaleContext";
 import { JervCanvas } from "../JervCanvas";
-import { formatBytes, formatSpeed } from "../formatBytes";
+import { downloadProgressPercent, formatBytes, formatDownloadPercent, formatSpeed } from "../formatBytes";
 import { DEFAULT_MODEL_ID, MODELS } from "../modelRegistry";
 import type { ModelLoadState } from "../types";
 import { CircularProgress } from "./CircularProgress";
@@ -15,7 +15,6 @@ import { LoadingHoloGallery } from "./LoadingHoloGallery";
 type IntroScreenProps = {
   phase: "start" | "loading";
   modelProgress: Partial<Record<typeof DEFAULT_MODEL_ID, ModelLoadState>>;
-  aggregateProgress: number;
   aggregateLoaded: number;
   aggregateTotal: number;
   downloadSpeed: number;
@@ -27,7 +26,6 @@ type IntroScreenProps = {
 export function IntroScreen({
   phase,
   modelProgress,
-  aggregateProgress,
   aggregateLoaded,
   aggregateTotal,
   downloadSpeed,
@@ -36,13 +34,17 @@ export function IntroScreen({
   onLoad,
 }: IntroScreenProps) {
   const { t, dir } = useLocale();
-  const model = MODELS.sd15;
-  const sdProgress = modelProgress.sd15;
+  const model = MODELS.flux;
+  const fluxProgress = modelProgress.flux;
   const displayTotal = aggregateTotal > 0 ? aggregateTotal : model.estimatedBytes;
-  const pct = Math.min(100, Math.max(0, Math.round(aggregateProgress)));
+  const displayLoaded = Math.min(aggregateLoaded, displayTotal);
+  const pctValue = downloadProgressPercent(displayLoaded, displayTotal);
+  const filesCompleted = fluxProgress?.filesCompleted ?? 0;
+  const fileCount = fluxProgress?.fileCount ?? 0;
+  const pctLabel = formatDownloadPercent(pctValue);
   const hasByteProgress = aggregateLoaded > 0;
   const indeterminate = phase === "loading" && !hasByteProgress;
-  const compilePulse = sdProgress?.compiling === true;
+  const compilePulse = fluxProgress?.compiling === true;
   const typewriterText = useLocaleTypewriter();
   const [consoleLines, setConsoleLines] = useState<string[]>([t.intro.standby]);
   const [showAltInitLabel, setShowAltInitLabel] = useState(false);
@@ -66,16 +68,22 @@ export function IntroScreen({
   }, [phase]);
 
   const logLine = useMemo(() => {
-    if (compilePulse) return `> COMPILE: ${sdProgress?.currentFile || "UNet"}…`;
-    if (sdProgress?.currentFile) return `> FETCH: ${sdProgress.currentFile}`;
+    if (compilePulse) return `> COMPILE: ${fluxProgress?.currentFile || "transformer"}…`;
+    if (fluxProgress?.currentFile) return `> FETCH: ${fluxProgress.currentFile}`;
     if (status) return `> ${status.toUpperCase()}`;
     return t.intro.standby;
-  }, [compilePulse, sdProgress?.currentFile, status, t.intro.standby]);
+  }, [compilePulse, fluxProgress?.currentFile, status, t.intro.standby]);
 
   useEffect(() => {
     if (phase !== "loading" || logLine === lastLogRef.current) return;
     lastLogRef.current = logLine;
-    setConsoleLines((prev) => [...prev, logLine].slice(-3));
+    setConsoleLines((prev) => {
+      const last = prev[prev.length - 1];
+      if (last?.startsWith("> FETCH:") && logLine.startsWith("> FETCH:")) {
+        return [...prev.slice(0, -1), logLine].slice(-3);
+      }
+      return [...prev, logLine].slice(-3);
+    });
   }, [phase, logLine]);
 
   return (
@@ -140,7 +148,7 @@ export function IntroScreen({
         ) : (
           <div className="hal-download" data-testid="download-progress">
             <CircularProgress
-              percent={sdProgress?.done ? 100 : pct}
+              percent={fluxProgress?.done ? 100 : pctValue}
               size={112}
               indeterminate={indeterminate || compilePulse}
               label={compilePulse ? "COMPILE" : model.shortLabel}
@@ -153,20 +161,21 @@ export function IntroScreen({
                 </div>
               ))}
               <div className="hal-console__line hal-console__line--meta">
-                {formatBytes(aggregateLoaded)} / {formatBytes(displayTotal)} · {formatSpeed(downloadSpeed)}
+                {fileCount > 0 ? `${filesCompleted}/${fileCount} files · ` : null}
+                {formatBytes(displayLoaded)} / {formatBytes(displayTotal)} · {formatSpeed(downloadSpeed)}
               </div>
             </div>
 
-            <div className="compact-progress-row hal-download__bar" data-testid="download-progress-sd15">
+            <div className="compact-progress-row hal-download__bar" data-testid="download-progress-flux">
               <span className="compact-progress-label">{model.shortLabel}</span>
               <div className="compact-progress-track">
                 <div
                   className={`compact-progress-fill${compilePulse ? " compact-progress-fill--compile" : ""}`}
-                  style={{ width: sdProgress?.done ? "100%" : `${pct}%` }}
+                  style={{ width: fluxProgress?.done ? "100%" : `${pctValue}%` }}
                 />
               </div>
               <span className="compact-progress-pct">
-                {sdProgress?.done ? "✓" : compilePulse ? "…" : `${pct}%`}
+                {fluxProgress?.done ? "✓" : compilePulse ? "…" : `${pctLabel}%`}
               </span>
             </div>
           </div>

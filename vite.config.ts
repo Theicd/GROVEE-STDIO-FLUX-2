@@ -7,7 +7,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   root: path.join(__dirname, "app"),
-  publicDir: path.join(__dirname, "public"),
+  // FLUX engine scripts live in app/public/flux2/ (not repo-root public/).
+  publicDir: path.join(__dirname, "app", "public"),
   base: process.env.VITE_BASE ?? "./",
   plugins: [react()],
   worker: {

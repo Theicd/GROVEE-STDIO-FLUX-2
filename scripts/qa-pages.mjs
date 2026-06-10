@@ -2,7 +2,7 @@
 /**
  * Static deploy smoke — run after npm run build.
  */
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -24,15 +24,23 @@ check(existsSync(indexPath), "QA-PG-01 dist/index.html");
 if (existsSync(indexPath)) {
   const html = readFileSync(indexPath, "utf8");
   check(html.includes('id="root"'), "QA-PG-02 root mount");
-  const script = html.match(/src="(\.\/assets\/[^"]+\.js)"/);
+  const script = html.match(/src="([^"]+\/assets\/[^"]+\.js)"/);
   if (script) {
-    check(existsSync(join(dist, script[1].replace(/^\.\//, ""))), "QA-PG-03 main bundle");
+    const assetPath = script[1].replace(/^\//, "").replace(/^GROVEE-STDIO\//, "");
+    check(existsSync(join(dist, assetPath)), "QA-PG-03 main bundle");
   } else {
     check(false, "QA-PG-03 main bundle", "script tag missing");
   }
 }
 
 check(existsSync(join(dist, "assets")), "QA-PG-04 assets folder");
+check(existsSync(join(dist, ".nojekyll")), "QA-PG-05 .nojekyll for Pages");
+check(existsSync(join(dist, "404.html")), "QA-PG-06 404.html SPA fallback");
+
+const workerFiles = existsSync(join(dist, "assets"))
+  ? readdirSync(join(dist, "assets")).filter((f) => f.startsWith("sd.worker-") && f.endsWith(".js"))
+  : [];
+check(workerFiles.length > 0, "QA-PG-07 sd.worker bundle in dist/assets", workerFiles[0] ?? "");
 
 if (fail > 0) process.exit(1);
 console.log("\nPages smoke OK.");

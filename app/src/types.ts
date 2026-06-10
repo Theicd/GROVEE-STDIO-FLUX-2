@@ -26,10 +26,19 @@ export type WorkerToMain =
       progress: number;
       file: string;
       status: string;
+      filesCompleted?: number;
+      fileCount?: number;
     }
   | { type: "status"; text: string }
   | { type: "loaded"; modelId?: ModelId; device: string }
-  | { type: "gen_progress"; count: number; total: number; progress: number }
+  | {
+      type: "gen_progress";
+      count: number;
+      total: number;
+      progress: number;
+      phase?: string;
+      elapsedSec?: number;
+    }
   | { type: "image_ready"; blob: Blob; width: number; height: number }
   | { type: "aborted" }
   | { type: "error"; error: string };
@@ -110,4 +119,6 @@ export type ModelLoadState = {
   status: string;
   done: boolean;
   compiling?: boolean;
+  filesCompleted?: number;
+  fileCount?: number;
 };

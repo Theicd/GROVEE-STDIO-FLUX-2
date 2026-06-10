@@ -17,7 +17,7 @@ const sampleItem = (id: string, createdAt: number): GenerationItem => ({
   height: 512,
   durationMs: 1000,
   createdAt,
-  modelId: "sd15",
+  modelId: "flux",
 });
 
 function makeReq<T>(result: T) {

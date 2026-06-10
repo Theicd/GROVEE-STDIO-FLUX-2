@@ -1,6 +1,6 @@
 import { APP_DOWNLOAD_PREFIX } from "../appBranding";
 import { useLocale } from "../i18n/LocaleContext";
-import { MODELS } from "../modelRegistry";
+import { DEFAULT_MODEL_ID, getModel } from "../modelRegistry";
 import type { GenerationItem } from "../types";
 
 type ImageCardProps = {
@@ -19,7 +19,7 @@ export function ImageCard({
   onDelete,
 }: ImageCardProps) {
   const { t } = useLocale();
-  const model = MODELS.sd15;
+  const model = getModel(item.modelId ?? DEFAULT_MODEL_ID);
 
   const download = () => {
     const a = document.createElement("a");

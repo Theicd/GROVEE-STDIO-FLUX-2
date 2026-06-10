@@ -10,7 +10,7 @@ type StudioTopBarProps = {
 
 export function StudioTopBar({ deviceLabel }: StudioTopBarProps) {
   const { t, dir } = useLocale();
-  const model = MODELS.sd15;
+  const model = MODELS.flux;
   const deviceLive = /webgpu/i.test(deviceLabel);
 
   return (

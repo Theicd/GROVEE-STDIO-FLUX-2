@@ -1,25 +1,28 @@
 import { FLUX_DEFAULT_GENERATION, SANA_DEFAULT_GENERATION, SD_DEFAULT_GENERATION } from "./generationConfig";
 import { DEFAULT_NEGATIVE, type StylePreset } from "./promptBuilder";
 import type { ModelId } from "./modelRegistry";
-import type { SdGenerationParams } from "./types";
+import type { FluxGenerationParams, SdGenerationParams } from "./types";
 
-export type SdModelSettings = {
-  guidanceScale: number;
+export type FluxModelSettings = {
   numInferenceSteps: number;
   height: number;
   width: number;
   style: StylePreset;
+  /** Reserved — FLUX.2 Klein browser path does not apply CFG like SD. */
+  guidanceScale: number;
 };
 
 export type ModelSettingsMap = {
-  sd15: SdModelSettings;
+  flux: FluxModelSettings;
 };
 
-export const SD_SETTINGS_DEFAULTS: SdModelSettings = {
-  guidanceScale: SD_DEFAULT_GENERATION.guidanceScale,
-  numInferenceSteps: SD_DEFAULT_GENERATION.numInferenceSteps,
-  height: SD_DEFAULT_GENERATION.height,
-  width: SD_DEFAULT_GENERATION.width,
+export const FLUX_RESOLUTIONS = [256, 512, 768, 1024] as const;
+
+export const FLUX_SETTINGS_DEFAULTS: FluxModelSettings = {
+  guidanceScale: FLUX_DEFAULT_GENERATION.guidanceScale,
+  numInferenceSteps: FLUX_DEFAULT_GENERATION.numInferenceSteps,
+  height: FLUX_DEFAULT_GENERATION.height,
+  width: FLUX_DEFAULT_GENERATION.width,
   style: "photoreal",
 };
 
@@ -27,9 +30,9 @@ const STORAGE_PREFIX = "janusgrove-settings-";
 export const GLOBAL_NEGATIVE_STORAGE_KEY = "janusgrove-negative-prompt";
 
 const LEGACY_NEGATIVE_MODEL_KEYS = [
+  `${STORAGE_PREFIX}flux`,
   `${STORAGE_PREFIX}sd15`,
   `${STORAGE_PREFIX}sana`,
-  `${STORAGE_PREFIX}flux`,
   `${STORAGE_PREFIX}janus`,
 ] as const;
 
@@ -39,6 +42,15 @@ function storageKey(modelId: ModelId): string {
 
 function clamp(n: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, n));
+}
+
+function snapFluxResolution(value: number): number {
+  const rounded = clamp(Math.round(value), 256, 1024);
+  let best: (typeof FLUX_RESOLUTIONS)[number] = 512;
+  for (const candidate of FLUX_RESOLUTIONS) {
+    if (Math.abs(candidate - rounded) < Math.abs(best - rounded)) best = candidate;
+  }
+  return best;
 }
 
 function migrateLegacyNegativePrompt(): string {
@@ -74,36 +86,66 @@ export function saveGlobalNegativePrompt(value: string): void {
   localStorage.setItem(GLOBAL_NEGATIVE_STORAGE_KEY, value);
 }
 
-function sanitizeSd(raw: Partial<SdModelSettings> | null | undefined): SdModelSettings {
-  const base = SD_SETTINGS_DEFAULTS;
+function sanitizeFlux(raw: Partial<FluxModelSettings> | null | undefined): FluxModelSettings {
+  const base = FLUX_SETTINGS_DEFAULTS;
   if (!raw) return { ...base };
-  const height = clamp(Math.round(Number(raw.height ?? base.height)), 256, 768);
-  const width = clamp(Math.round(Number(raw.width ?? base.width)), 256, 768);
+  const width = snapFluxResolution(Number(raw.width ?? base.width));
+  const height = snapFluxResolution(Number(raw.height ?? base.height));
   return {
     guidanceScale: clamp(Number(raw.guidanceScale ?? base.guidanceScale), 1, 20),
-    numInferenceSteps: clamp(Math.round(Number(raw.numInferenceSteps ?? base.numInferenceSteps)), 5, 50),
-    height: height - (height % 64),
-    width: width - (width % 64),
+    numInferenceSteps: clamp(Math.round(Number(raw.numInferenceSteps ?? base.numInferenceSteps)), 1, 8),
+    height,
+    width,
     style: (raw.style as StylePreset) ?? base.style,
   };
 }
 
-export function loadModelSettings(modelId: ModelId): SdModelSettings {
-  if (typeof localStorage === "undefined") return { ...SD_SETTINGS_DEFAULTS };
+export function loadModelSettings(modelId: ModelId): FluxModelSettings {
+  if (typeof localStorage === "undefined") return { ...FLUX_SETTINGS_DEFAULTS };
   try {
     const raw = localStorage.getItem(storageKey(modelId));
-    if (!raw) return { ...SD_SETTINGS_DEFAULTS };
-    return sanitizeSd(JSON.parse(raw));
+    if (!raw) return { ...FLUX_SETTINGS_DEFAULTS };
+    return sanitizeFlux(JSON.parse(raw));
   } catch {
-    return { ...SD_SETTINGS_DEFAULTS };
+    return { ...FLUX_SETTINGS_DEFAULTS };
   }
 }
 
-export function saveModelSettings(modelId: ModelId, settings: SdModelSettings): void {
+export function saveModelSettings(modelId: ModelId, settings: FluxModelSettings): void {
   if (typeof localStorage === "undefined") return;
-  localStorage.setItem(storageKey(modelId), JSON.stringify(sanitizeSd(settings)));
+  localStorage.setItem(storageKey(modelId), JSON.stringify(sanitizeFlux(settings)));
 }
 
+export function fluxSettingsToGeneration(settings: FluxModelSettings): FluxGenerationParams {
+  return {
+    numInferenceSteps: settings.numInferenceSteps,
+    guidanceScale: settings.guidanceScale,
+    height: settings.height,
+    width: settings.width,
+  };
+}
+
+export function formatFluxSettingsHint(settings: FluxModelSettings): string {
+  return `${settings.numInferenceSteps} steps · ${settings.width}×${settings.height}`;
+}
+
+export function formatSettingsHint(_modelId: ModelId, settings: FluxModelSettings): string {
+  return formatFluxSettingsHint(settings);
+}
+
+/** @deprecated Legacy SD settings kept for archived sd.worker.ts */
+export type SdModelSettings = FluxModelSettings;
+
+/** @deprecated Legacy SD defaults kept for archived sd.worker.ts */
+export const SD_SETTINGS_DEFAULTS: SdModelSettings = {
+  guidanceScale: SD_DEFAULT_GENERATION.guidanceScale,
+  numInferenceSteps: SD_DEFAULT_GENERATION.numInferenceSteps,
+  height: SD_DEFAULT_GENERATION.height,
+  width: SD_DEFAULT_GENERATION.width,
+  style: "photoreal",
+};
+
+/** @deprecated Legacy SD mapping kept for archived sd.worker.ts */
 export function sdSettingsToGeneration(settings: SdModelSettings): SdGenerationParams {
   return {
     numInferenceSteps: settings.numInferenceSteps,
@@ -113,22 +155,10 @@ export function sdSettingsToGeneration(settings: SdModelSettings): SdGenerationP
   };
 }
 
+/** @deprecated Legacy SD hint kept for archived components */
 export function formatSdSettingsHint(settings: SdModelSettings): string {
-  return `CFG ${settings.guidanceScale.toFixed(1)} · ${settings.numInferenceSteps} steps`;
+  return formatFluxSettingsHint(settings);
 }
-
-export function formatSettingsHint(_modelId: ModelId, settings: SdModelSettings): string {
-  return formatSdSettingsHint(settings);
-}
-
-/** @deprecated Legacy flux defaults kept for archived worker files. */
-export const FLUX_SETTINGS_DEFAULTS = {
-  guidanceScale: FLUX_DEFAULT_GENERATION.guidanceScale,
-  numInferenceSteps: FLUX_DEFAULT_GENERATION.numInferenceSteps,
-  height: FLUX_DEFAULT_GENERATION.height,
-  width: FLUX_DEFAULT_GENERATION.width,
-  style: "photoreal" as StylePreset,
-};
 
 /** @deprecated Legacy sana defaults kept for archived worker files. */
 export const SANA_SETTINGS_DEFAULTS = {

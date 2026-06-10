@@ -1,22 +1,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { JervCanvas } from "./JervCanvas";
-import { createSdWorker, postToSdWorker } from "./sdClient";
+import { createFluxWorker, postToFluxWorker } from "./fluxClient";
 import { pickLandingContent } from "./landingContent";
 import { shouldEnterStudio, shouldShowIntro } from "./loadOrchestration";
-import { buildSdPromptFromSettings } from "./promptBuilder";
+import { buildFluxPrompt } from "./promptBuilder";
 import { resolvePromptsForModel } from "./promptTranslate";
 import {
-  loadGlobalNegativePrompt,
   loadModelSettings,
-  saveGlobalNegativePrompt,
   saveModelSettings,
-  sdSettingsToGeneration,
-  type SdModelSettings,
+  fluxSettingsToGeneration,
+  type FluxModelSettings,
 } from "./modelSettings";
 import {
   DEFAULT_MODEL_ID,
+  FLUX_BROWSER_AVAILABLE,
   MODELS,
-  SD15_BROWSER_AVAILABLE,
   totalBytesForSelection,
   type ModelId,
 } from "./modelRegistry";
@@ -40,7 +38,7 @@ function emptyModelLoadState(): ModelLoadState {
   return {
     progress: 0,
     loaded: 0,
-    total: MODELS.sd15.estimatedBytes,
+    total: MODELS.flux.estimatedBytes,
     downloadSpeed: 0,
     currentFile: "",
     status: "Waiting…",
@@ -56,8 +54,8 @@ function markModelLoaded(
   setModelProgress((prev) => {
     const next = {
       ...prev,
-      sd15: {
-        ...(prev.sd15 ?? emptyModelLoadState()),
+      flux: {
+        ...(prev.flux ?? emptyModelLoadState()),
         progress: 100,
         done: true,
         compiling: false,
@@ -74,12 +72,12 @@ export default function App() {
   const tRef = useRef(t);
   tRef.current = t;
 
-  const sdWorkerRef = useRef<Worker | null>(null);
+  const fluxWorkerRef = useRef<Worker | null>(null);
   const genStartRef = useRef(0);
   const lastUserPromptRef = useRef("");
   const phaseRef = useRef<AppPhase>("start");
   const generatingModelRef = useRef(false);
-  const sdSettingsRef = useRef<SdModelSettings>(loadModelSettings("sd15"));
+  const fluxSettingsRef = useRef<FluxModelSettings>(loadModelSettings("flux"));
   const speedRef = useRef({ lastLoaded: 0, lastTime: 0, samples: [] as number[] });
   const loadedRef = useRef(false);
 
@@ -100,12 +98,9 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
 
   const [prompt, setPrompt] = useState("");
-  const [globalNegativePrompt, setGlobalNegativePrompt] = useState(() => loadGlobalNegativePrompt());
-  const globalNegativePromptRef = useRef(globalNegativePrompt);
-  const [sdSettings, setSdSettings] = useState<SdModelSettings>(() => loadModelSettings("sd15"));
+  const [fluxSettings, setFluxSettings] = useState<FluxModelSettings>(() => loadModelSettings("flux"));
   const [settingsOpen, setSettingsOpen] = useState(false);
-  globalNegativePromptRef.current = globalNegativePrompt;
-  sdSettingsRef.current = sdSettings;
+  fluxSettingsRef.current = fluxSettings;
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [genProgress, setGenProgress] = useState(0);
@@ -122,11 +117,14 @@ export default function App() {
   const showIntro = shouldShowIntro(phase, isLoaded ? 1 : 0);
 
   const recomputeAggregate = useCallback((next: Partial<Record<ModelId, ModelLoadState>>) => {
-    const row = next.sd15;
+    const row = next.flux;
     if (!row) return;
-    setAggregateLoaded(row.loaded);
-    setAggregateTotal(row.total || MODELS.sd15.estimatedBytes);
-    setAggregateProgress(Math.min(100, Math.max(0, row.progress)));
+    const total = row.total || MODELS.flux.estimatedBytes;
+    const loaded = Math.max(0, row.loaded);
+    const progress = total > 0 ? (loaded / total) * 100 : row.progress;
+    setAggregateLoaded((prev) => Math.max(prev, loaded));
+    setAggregateTotal(total);
+    setAggregateProgress((prev) => Math.max(prev, Math.min(100, progress)));
   }, []);
 
   const enterStudio = useCallback(() => {
@@ -151,8 +149,8 @@ export default function App() {
       setModelProgress((prev) => {
         const next = {
           ...prev,
-          sd15: {
-            ...(prev.sd15 ?? emptyModelLoadState()),
+          flux: {
+            ...(prev.flux ?? emptyModelLoadState()),
             status: `Unavailable — ${message}`,
             done: false,
             compiling: false,
@@ -166,7 +164,7 @@ export default function App() {
     [recomputeAggregate],
   );
 
-  const handleSdMessage = useCallback(
+  const handleFluxMessage = useCallback(
     (msg: WorkerToMain) => {
       switch (msg.type) {
         case "webgpu_check":
@@ -175,23 +173,28 @@ export default function App() {
         case "download_progress": {
           const isCompile = msg.status === "compile";
           setModelProgress((prev) => {
-            const row = prev.sd15 ?? emptyModelLoadState();
+            const row = prev.flux ?? emptyModelLoadState();
+            const total = msg.total || row.total || MODELS.flux.estimatedBytes;
+            const loaded = Math.min(total, Math.max(row.loaded, msg.loaded));
+            const progress =
+              total > 0
+                ? (loaded / total) * 100
+                : msg.progress <= 1
+                  ? msg.progress * 100
+                  : msg.progress;
             const next = {
               ...prev,
-              sd15: {
+              flux: {
                 ...row,
-                loaded: msg.loaded,
-                total: msg.total,
-                progress:
-                  msg.total > 0
-                    ? (msg.loaded / msg.total) * 100
-                    : msg.progress <= 1
-                      ? msg.progress * 100
-                      : msg.progress,
-                currentFile: msg.file,
+                loaded,
+                total,
+                progress: Math.max(row.progress, Math.min(100, progress)),
+                filesCompleted: msg.filesCompleted ?? row.filesCompleted,
+                fileCount: msg.fileCount ?? row.fileCount,
+                currentFile: msg.file || row.currentFile,
                 compiling: isCompile,
                 status: isCompile
-                  ? `Compiling ${msg.file || "UNet"}…`
+                  ? `Compiling ${msg.file || "transformer"}…`
                   : msg.file
                     ? `Downloading ${msg.file}…`
                     : row.status,
@@ -215,24 +218,36 @@ export default function App() {
         case "loaded":
           onModelLoaded(msg.device);
           break;
-        case "gen_progress":
+        case "gen_progress": {
           if (!generatingModelRef.current) break;
           setGenProgress(msg.progress);
           setGenTokens({ count: msg.count, total: msg.total });
+          const phases = tRef.current.status.genPhases;
+          if (msg.phase && phases[msg.phase as keyof typeof phases]) {
+            let label = phases[msg.phase as keyof typeof phases];
+            if (msg.phase === "denoise" && msg.total > 0 && msg.total <= 16) {
+              label = `${label} ${msg.count}/${msg.total}`;
+            }
+            if (msg.elapsedSec && msg.elapsedSec >= 3) {
+              label = `${label} · ${msg.elapsedSec}s`;
+            }
+            setStatus(label);
+          }
           break;
+        }
         case "image_ready": {
           if (!generatingModelRef.current) break;
           const url = URL.createObjectURL(msg.blob);
           const item: GenerationItem = {
             id: crypto.randomUUID(),
             prompt: lastUserPromptRef.current,
-            negativePrompt: globalNegativePromptRef.current,
+            negativePrompt: "",
             imageUrl: url,
             width: msg.width,
             height: msg.height,
             durationMs: performance.now() - genStartRef.current,
             createdAt: Date.now(),
-            modelId: "sd15",
+            modelId: "flux",
           };
           setGallery((prev) => [item, ...prev]);
           void saveGalleryItem(item, msg.blob).then(() => trimGalleryIfNeeded());
@@ -258,7 +273,7 @@ export default function App() {
           if (phaseRef.current === "loading" && !loadedRef.current) {
             onModelLoadFailed(msg.error);
           } else {
-            setError(`SD 1.5: ${msg.error}`);
+            setError(`FLUX.2: ${msg.error}`);
           }
           break;
         default:
@@ -268,25 +283,25 @@ export default function App() {
     [onModelLoadFailed, onModelLoaded, recomputeAggregate],
   );
 
-  const handleSdMessageRef = useRef(handleSdMessage);
-  handleSdMessageRef.current = handleSdMessage;
+  const handleFluxMessageRef = useRef(handleFluxMessage);
+  handleFluxMessageRef.current = handleFluxMessage;
 
-  const ensureSdWorker = useCallback(() => {
-    if (sdWorkerRef.current) return sdWorkerRef.current;
-    const worker = createSdWorker({ onMessage: (m) => handleSdMessageRef.current(m) });
-    sdWorkerRef.current = worker;
-    postToSdWorker(worker, { type: "check_webgpu" });
+  const ensureFluxWorker = useCallback(() => {
+    if (fluxWorkerRef.current) return fluxWorkerRef.current;
+    const worker = createFluxWorker({ onMessage: (m) => handleFluxMessageRef.current(m) });
+    fluxWorkerRef.current = worker;
+    postToFluxWorker(worker, { type: "check_webgpu" });
     return worker;
   }, []);
 
   useEffect(() => {
-    const worker = ensureSdWorker();
-    postToSdWorker(worker, { type: "check_webgpu" });
+    const worker = ensureFluxWorker();
+    postToFluxWorker(worker, { type: "check_webgpu" });
     return () => {
-      sdWorkerRef.current?.terminate();
-      sdWorkerRef.current = null;
+      fluxWorkerRef.current?.terminate();
+      fluxWorkerRef.current = null;
     };
-  }, [ensureSdWorker]);
+  }, [ensureFluxWorker]);
 
   useEffect(() => {
     if (phase === "start" && !isLoaded && !isGenerating) {
@@ -316,7 +331,7 @@ export default function App() {
   }, []);
 
   const loadModels = useCallback(() => {
-    if (!SD15_BROWSER_AVAILABLE) {
+    if (!FLUX_BROWSER_AVAILABLE) {
       setError(tRef.current.errors.sdUnavailable);
       return;
     }
@@ -326,16 +341,16 @@ export default function App() {
     loadedRef.current = false;
     setAggregateProgress(0);
     setAggregateLoaded(0);
-    setAggregateTotal(totalBytesForSelection(["sd15"]));
+    setAggregateTotal(totalBytesForSelection(["flux"]));
     setDownloadSpeed(0);
     speedRef.current = { lastLoaded: 0, lastTime: 0, samples: [] };
-    const initial = { sd15: emptyModelLoadState() };
+    const initial = { flux: emptyModelLoadState() };
     setModelProgress(initial);
     recomputeAggregate(initial);
     setStatus(tRef.current.status.preparingDownload);
-    ensureSdWorker();
-    postToSdWorker(sdWorkerRef.current!, { type: "load" });
-  }, [ensureSdWorker, recomputeAggregate]);
+    ensureFluxWorker();
+    postToFluxWorker(fluxWorkerRef.current!, { type: "load" });
+  }, [ensureFluxWorker, recomputeAggregate]);
 
   useEffect(() => {
     if (phase !== "loading" && phase !== "ready") return;
@@ -363,7 +378,7 @@ export default function App() {
         if (!loadedRef.current) setError(tRef.current.status.notLoaded);
         return;
       }
-      if (!SD15_BROWSER_AVAILABLE) {
+      if (!FLUX_BROWSER_AVAILABLE) {
         setError(tRef.current.errors.sdUnavailable);
         return;
       }
@@ -376,46 +391,34 @@ export default function App() {
       setGenTokens({ count: 0, total: 0 });
       genStartRef.current = performance.now();
       setStatus(tRef.current.status.generating);
-      const settings = sdSettingsRef.current;
-      const negative = globalNegativePromptRef.current;
+      const settings = fluxSettingsRef.current;
 
       void (async () => {
-        const { positive, negative: modelNegative } = await resolvePromptsForModel(
-          rawPrompt,
-          negative,
-        );
+        const { positive } = await resolvePromptsForModel(rawPrompt, "");
         if (!generatingModelRef.current) return;
-        const { prompt: sdPrompt, negativePrompt } = buildSdPromptFromSettings(
-          positive,
-          settings,
-          modelNegative,
-        );
-        postToSdWorker(ensureSdWorker(), {
+        const fluxPrompt = buildFluxPrompt(positive, settings.style);
+        postToFluxWorker(ensureFluxWorker(), {
           type: "generate_image",
-          prompt: sdPrompt,
-          negativePrompt,
-          generation: sdSettingsToGeneration(settings),
+          prompt: fluxPrompt,
+          generation: fluxSettingsToGeneration(settings),
         });
       })();
     },
-    [ensureSdWorker],
+    [ensureFluxWorker],
   );
 
-  const updateGlobalNegativePrompt = useCallback((value: string) => {
-    globalNegativePromptRef.current = value;
-    setGlobalNegativePrompt(value);
-    saveGlobalNegativePrompt(value);
-  }, []);
-
-  const updateSdSettings = useCallback((next: SdModelSettings | ((prev: SdModelSettings) => SdModelSettings)) => {
-    setSdSettings((prev) => {
-      const resolved = typeof next === "function" ? next(prev) : next;
-      saveModelSettings("sd15", resolved);
-      const persisted = loadModelSettings("sd15");
-      sdSettingsRef.current = persisted;
-      return persisted;
-    });
-  }, []);
+  const updateFluxSettings = useCallback(
+    (next: FluxModelSettings | ((prev: FluxModelSettings) => FluxModelSettings)) => {
+      setFluxSettings((prev) => {
+        const resolved = typeof next === "function" ? next(prev) : next;
+        saveModelSettings("flux", resolved);
+        const persisted = loadModelSettings("flux");
+        fluxSettingsRef.current = persisted;
+        return persisted;
+      });
+    },
+    [],
+  );
 
   useEffect(() => {
     publishJanusQa({
@@ -473,7 +476,7 @@ export default function App() {
   }, [phase, isGenerating, gallery.length, runGenerate]);
 
   const stopGenerate = () => {
-    postToSdWorker(ensureSdWorker(), { type: "abort" });
+    postToFluxWorker(ensureFluxWorker(), { type: "abort" });
   };
 
   const deleteItem = (id: string) => {
@@ -491,7 +494,6 @@ export default function App() {
         <IntroScreen
           phase={phase === "loading" ? "loading" : "start"}
           modelProgress={modelProgress}
-          aggregateProgress={aggregateProgress}
           aggregateLoaded={aggregateLoaded}
           aggregateTotal={aggregateTotal}
           downloadSpeed={downloadSpeed}
@@ -520,7 +522,7 @@ export default function App() {
 
       <PromptStudio
         prompt={prompt}
-        sdSettings={sdSettings}
+        fluxSettings={fluxSettings}
         deviceLabel={deviceLabel}
         status={status}
         isGenerating={isGenerating}
@@ -557,11 +559,9 @@ export default function App() {
       <SettingsPanel
         open={settingsOpen}
         deviceLabel={deviceLabel}
-        globalNegativePrompt={globalNegativePrompt}
-        sdSettings={sdSettings}
+        fluxSettings={fluxSettings}
         onClose={() => setSettingsOpen(false)}
-        onGlobalNegativeChange={updateGlobalNegativePrompt}
-        onSdChange={updateSdSettings}
+        onFluxChange={updateFluxSettings}
       />
 
       {error ? (

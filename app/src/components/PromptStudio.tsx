@@ -1,12 +1,12 @@
 import { useLocale } from "../i18n/LocaleContext";
-import { SD15_BROWSER_AVAILABLE } from "../modelRegistry";
-import { formatSdSettingsHint, type SdModelSettings } from "../modelSettings";
+import { FLUX_BROWSER_AVAILABLE } from "../modelRegistry";
+import { formatFluxSettingsHint, type FluxModelSettings } from "../modelSettings";
 
 import { StudioTopBar } from "./StudioTopBar";
 
 type PromptStudioProps = {
   prompt: string;
-  sdSettings: SdModelSettings;
+  fluxSettings: FluxModelSettings;
   deviceLabel: string;
   status: string;
   isGenerating: boolean;
@@ -23,7 +23,7 @@ type PromptStudioProps = {
 
 export function PromptStudio({
   prompt,
-  sdSettings,
+  fluxSettings,
   deviceLabel,
   status,
   isGenerating,
@@ -39,10 +39,11 @@ export function PromptStudio({
 }: PromptStudioProps) {
   const { t, dir } = useLocale();
   const canGenerate =
-    prompt.trim().length > 0 && !isGenerating && isModelLoaded && SD15_BROWSER_AVAILABLE;
-  const settingsHint = formatSdSettingsHint(sdSettings);
-  const scaleLabel = `${sdSettings.width}×${sdSettings.height}`;
-  const pct = Math.round(genProgress * 100);
+    prompt.trim().length > 0 && !isGenerating && isModelLoaded && FLUX_BROWSER_AVAILABLE;
+  const settingsHint = formatFluxSettingsHint(fluxSettings);
+  const scaleLabel = `${fluxSettings.width}×${fluxSettings.height}`;
+  const pct = Math.min(100, Math.max(0, Math.round(genProgress * 100)));
+  const showStepCounter = isGenerating && genTokenTotal > 0 && genTokenTotal <= 16;
 
   return (
     <div className="workspace-header" data-testid="composer-bar" dir={dir}>
@@ -125,12 +126,14 @@ export function PromptStudio({
           >
             {isGenerating ? (
               <>
-                <span className="input-terminal__status">{t.generating.title}</span>
+                <span className="input-terminal__status">
+                  {status || t.generating.title}
+                </span>
                 <span className="input-terminal__progress-bar" aria-hidden="true">
                   <span className="input-terminal__progress-fill" style={{ width: `${pct}%` }} />
                 </span>
                 <span className="input-terminal__progress-pct">{pct}%</span>
-                {genTokenTotal > 0 ? (
+                {showStepCounter ? (
                   <span className="input-terminal__progress-steps">
                     {genTokenCount}/{genTokenTotal}
                   </span>
@@ -140,7 +143,7 @@ export function PromptStudio({
               <span className="input-terminal__status">{status}</span>
             )}
           </div>
-          {!SD15_BROWSER_AVAILABLE ? (
+          {!FLUX_BROWSER_AVAILABLE ? (
             <span className="input-terminal__rail-warn">{t.studio.sdUnavailable}</span>
           ) : null}
         </div>

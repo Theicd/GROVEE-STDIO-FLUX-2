@@ -1,6 +1,6 @@
 import { APP_NAME } from "../appBranding";
 import { useLocale } from "../i18n/LocaleContext";
-
+import { MODELS } from "../modelRegistry";
 import { LangToggle } from "./LangToggle";
 
 type IntroTopBarProps = {
@@ -38,7 +38,7 @@ export function IntroTopBar({ webgpu }: IntroTopBarProps) {
           </div>
           <span className="intro-topbar__hud-sep" aria-hidden="true" />
           <div className="intro-topbar__node intro-topbar__node--dim">
-            <span className="intro-topbar__node-label">SD 1.5</span>
+            <span className="intro-topbar__node-label">{MODELS.flux.shortLabel}</span>
           </div>
           <span className="intro-topbar__hud-cap intro-topbar__hud-cap--end" aria-hidden="true" />
         </div>

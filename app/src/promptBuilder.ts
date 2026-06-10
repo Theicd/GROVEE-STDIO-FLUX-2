@@ -99,3 +99,8 @@ export function buildSdPromptFromSettings(
 ): SdPromptPair {
   return buildSdPrompt(positive, negative, settings.style);
 }
+
+/** FLUX.2 Klein — style suffix on positive prompt only (no native negative channel). */
+export function buildFluxPrompt(positive: string, style: StylePreset = "photoreal"): string {
+  return buildSdPrompt(positive, "", style).prompt;
+}

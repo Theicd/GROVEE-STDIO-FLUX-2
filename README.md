@@ -1,43 +1,56 @@
-# JanusGrove
+# GROVEE STDIO
 
-ממשק וובי פרימיום ליצירת תמונות בדפדפן עם [Janus-Pro-1B-ONNX](https://huggingface.co/onnx-community/Janus-Pro-1B-ONNX).
+**SD 1.5** — AI image generation entirely in your browser (WebGPU / WASM). HAL-terminal UI.
 
-## Quick start
+---
 
-```bash
-npm install
-npm run dev
+## Open the app (not the GitHub repo page)
+
+### Live web UI
+
+**https://theicd.github.io/GROVEE-STDIO/**
+
+This is the real interface. The repo page on github.com is only source code + this README.
+
+> **First visit:** engine loads automatically in the browser (~2 GB cached once) + GPU prep (2–5 min) → enter prompt → **▶**  
+> **Return visits:** loads from browser cache in seconds — no reinstall, no npm.
+
+### If you see only this README on Pages
+
+GitHub is serving the repo instead of the built app. Fix once:
+
+1. Repo **Settings → Pages → Build and deployment → Source: GitHub Actions**
+2. Push latest `main` (includes `.github/workflows/deploy-pages.yml`)
+3. **Actions** tab → wait for **Deploy GitHub Pages** to finish (green)
+4. Reload **https://theicd.github.io/GROVEE-STDIO/** — you should see **GROVEE STDIO** intro, not JanusGrove text
+
+---
+
+## Local (Windows)
+
+```bat
+start.bat
 ```
 
-פתח `http://127.0.0.1:5173` → **Load Janus-Pro model** (~2.4GB הורדה ראשונה) → כתוב prompt → **Generate**.
+→ **http://127.0.0.1:5180**
 
-## Scripts
+## Build
 
-| פקודה | תיאור |
-|--------|--------|
-| `npm run dev` | שרת פיתוח |
-| `npm run build` | בניית production → `dist/` |
-| `npm test` | unit tests |
-| `npm run qa:janus` | smoke QA |
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Dev server (`base: ./`) |
+| `npm run build:pages` | Production build for GitHub Pages (`/GROVEE-STDIO/`) |
+| `npm run qa:pages` | Smoke-check `dist/` after Pages build |
+| `npm test` | Unit tests |
 
-## יכולות (MVP)
+## Requirements
 
-- הורדה וטעינה מקומית מ-Hugging Face
-- Text → Image (384×384)
-- Negative prompt (מיזוג לטקסט)
-- Style presets: Portrait, Landscape, Product, Anime
-- גלריה: Download, Copy, Regenerate, Delete
-- Landing עם כותרת + 3 הצעות (אקראי ברענון)
+- Chrome / Edge **113+** with **WebGPU**
+- ~4 GB RAM recommended
+- Internet for first model download (Hugging Face CDN — works from Pages origin)
 
-## דרישות
+## Docs
 
-- Chrome / Edge עם **WebGPU**
-- ~4GB+ זיכרון פנוי מומלץ
-- חיבור אינטרנט להורדה ראשונה בלבד
-
-## מסמכים
-
-- [PROJECT_PLAN.md](PROJECT_PLAN.md)
-- [docs/QA_PLAN.md](docs/QA_PLAN.md)
 - [docs/MODEL_CAPABILITIES.md](docs/MODEL_CAPABILITIES.md)
+- [docs/QA_PLAN.md](docs/QA_PLAN.md)
 - [docs/PROMPT_LIBRARY.md](docs/PROMPT_LIBRARY.md)

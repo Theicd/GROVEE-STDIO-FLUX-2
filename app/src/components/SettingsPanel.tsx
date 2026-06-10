@@ -1,16 +1,18 @@
 import { useLocale } from "../i18n/LocaleContext";
-import { MODELS, SD15_BROWSER_AVAILABLE } from "../modelRegistry";
-import { SD_SETTINGS_DEFAULTS, type SdModelSettings } from "../modelSettings";
-import { DEFAULT_NEGATIVE, type StylePreset } from "../promptBuilder";
+import { FLUX_BROWSER_AVAILABLE, MODELS } from "../modelRegistry";
+import {
+  FLUX_RESOLUTIONS,
+  FLUX_SETTINGS_DEFAULTS,
+  type FluxModelSettings,
+} from "../modelSettings";
+import type { StylePreset } from "../promptBuilder";
 
 type SettingsPanelProps = {
   open: boolean;
   deviceLabel: string;
-  globalNegativePrompt: string;
-  sdSettings: SdModelSettings;
+  fluxSettings: FluxModelSettings;
   onClose: () => void;
-  onGlobalNegativeChange: (value: string) => void;
-  onSdChange: (next: SdModelSettings | ((prev: SdModelSettings) => SdModelSettings)) => void;
+  onFluxChange: (next: FluxModelSettings | ((prev: FluxModelSettings) => FluxModelSettings)) => void;
 };
 
 const STYLE_IDS: StylePreset[] = ["photoreal", "none", "portrait", "landscape", "product", "anime"];
@@ -57,17 +59,15 @@ function SliderField({
 export function SettingsPanel({
   open,
   deviceLabel,
-  globalNegativePrompt,
-  sdSettings,
+  fluxSettings,
   onClose,
-  onGlobalNegativeChange,
-  onSdChange,
+  onFluxChange,
 }: SettingsPanelProps) {
   const { t, dir } = useLocale();
 
   if (!open) return null;
 
-  const model = MODELS.sd15;
+  const model = MODELS.flux;
 
   return (
     <div className="settings-overlay" role="presentation" onClick={onClose}>
@@ -101,11 +101,11 @@ export function SettingsPanel({
           </div>
           <div>
             <span className="settings-readonly-label">{t.settings.resolution}</span>
-            <span>{model.resolution}</span>
+            <span>{fluxSettings.width}×{fluxSettings.height}</span>
           </div>
         </div>
 
-        {!SD15_BROWSER_AVAILABLE ? (
+        {!FLUX_BROWSER_AVAILABLE ? (
           <div className="settings-unavailable-banner" role="alert">
             {t.errors.sdUnavailable}
           </div>
@@ -113,21 +113,16 @@ export function SettingsPanel({
           <>
             <div className="settings-body">
               <SliderField
-                label={t.settings.cfg}
-                value={sdSettings.guidanceScale}
-                min={1}
-                max={20}
-                step={0.5}
-                onChange={(guidanceScale) => onSdChange((prev) => ({ ...prev, guidanceScale }))}
-              />
-              <SliderField
                 label={t.settings.steps}
-                value={sdSettings.numInferenceSteps}
-                min={5}
-                max={50}
+                value={fluxSettings.numInferenceSteps}
+                min={1}
+                max={8}
                 step={1}
                 onChange={(numInferenceSteps) =>
-                  onSdChange((prev) => ({ ...prev, numInferenceSteps: Math.round(numInferenceSteps) }))
+                  onFluxChange((prev) => ({
+                    ...prev,
+                    numInferenceSteps: Math.round(numInferenceSteps),
+                  }))
                 }
                 hint={t.settings.stepsHint}
               />
@@ -135,44 +130,37 @@ export function SettingsPanel({
             </div>
 
             <div className="settings-shared">
+              <div className="style-chips" role="group" aria-label={t.settings.resolution}>
+                {FLUX_RESOLUTIONS.map((size) => (
+                  <button
+                    key={size}
+                    type="button"
+                    className={`style-chip ${fluxSettings.width === size && fluxSettings.height === size ? "active" : ""}`}
+                    onClick={() =>
+                      onFluxChange((prev) => ({ ...prev, width: size, height: size }))
+                    }
+                  >
+                    {size}×{size}
+                  </button>
+                ))}
+              </div>
+
               <div className="style-chips" role="group" aria-label={t.settings.stylePreset}>
                 {STYLE_IDS.map((id) => (
                   <button
                     key={id}
                     type="button"
-                    className={`style-chip ${sdSettings.style === id ? "active" : ""}`}
-                    onClick={() => onSdChange((prev) => ({ ...prev, style: id }))}
+                    className={`style-chip ${fluxSettings.style === id ? "active" : ""}`}
+                    onClick={() => onFluxChange((prev) => ({ ...prev, style: id }))}
                   >
                     {t.settings.styles[id]}
                   </button>
                 ))}
               </div>
-
-              <label className="settings-field">
-                <span>{t.settings.negativePrompt}</span>
-                <p className="settings-field-hint">{t.settings.negativeHint}</p>
-                <textarea
-                  className="negative-textarea"
-                  dir="auto"
-                  rows={4}
-                  placeholder={t.settings.negativePlaceholder}
-                  value={globalNegativePrompt}
-                  onChange={(e) => onGlobalNegativeChange(e.target.value)}
-                />
-              </label>
-
-              <div className="settings-negative-actions">
-                <button type="button" className="text-btn" onClick={() => onGlobalNegativeChange("")}>
-                  {t.settings.clearNegative}
-                </button>
-                <button type="button" className="text-btn" onClick={() => onGlobalNegativeChange(DEFAULT_NEGATIVE)}>
-                  {t.settings.resetNegative}
-                </button>
-              </div>
             </div>
 
             <footer className="settings-footer">
-              <button type="button" className="text-btn" onClick={() => onSdChange({ ...SD_SETTINGS_DEFAULTS })}>
+              <button type="button" className="text-btn" onClick={() => onFluxChange({ ...FLUX_SETTINGS_DEFAULTS })}>
                 {t.settings.resetAll}
               </button>
             </footer>

@@ -1,3 +1,5 @@
+import { formatDownloadPercent } from "../formatBytes";
+
 type CircularProgressProps = {
   percent: number;
   size?: number;
@@ -39,7 +41,9 @@ export function CircularProgress({
         />
       </svg>
       <div className="hal-ring__center" dir="ltr">
-        <span className="hal-ring__pct">{indeterminate ? "…" : `${Math.round(clamped)}%`}</span>
+        <span className="hal-ring__pct">
+          {indeterminate ? "…" : `${formatDownloadPercent(clamped)}%`}
+        </span>
         {label ? <span className="hal-ring__label">{label}</span> : null}
       </div>
     </div>
