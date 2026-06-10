@@ -38,6 +38,8 @@ export type WorkerToMain =
       progress: number;
       phase?: string;
       elapsedSec?: number;
+      firstWarmup?: boolean;
+      firstGeneration?: boolean;
     }
   | { type: "image_ready"; blob: Blob; width: number; height: number }
   | { type: "aborted" }

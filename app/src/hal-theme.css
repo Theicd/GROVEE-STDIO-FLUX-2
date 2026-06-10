@@ -1308,6 +1308,16 @@
   flex-shrink: 0;
 }
 
+.input-terminal__status-hint {
+  color: #888;
+  font-size: 0.56rem;
+  white-space: nowrap;
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .input-terminal__progress-bar {
   flex: 0 1 128px;
   width: min(128px, 22vw);

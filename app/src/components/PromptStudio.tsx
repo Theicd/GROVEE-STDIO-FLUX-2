@@ -15,6 +15,7 @@ type PromptStudioProps = {
   genProgress?: number;
   genTokenCount?: number;
   genTokenTotal?: number;
+  genHint?: string;
   onPromptChange: (v: string) => void;
   onOpenSettings: () => void;
   onGenerate: () => void;
@@ -32,6 +33,7 @@ export function PromptStudio({
   genProgress = 0,
   genTokenCount = 0,
   genTokenTotal = 0,
+  genHint = "",
   onPromptChange,
   onOpenSettings,
   onGenerate,
@@ -136,6 +138,11 @@ export function PromptStudio({
                 {showStepCounter ? (
                   <span className="input-terminal__progress-steps">
                     {genTokenCount}/{genTokenTotal}
+                  </span>
+                ) : null}
+                {genHint ? (
+                  <span className="input-terminal__status-hint" dir={dir}>
+                    {genHint}
                   </span>
                 ) : null}
               </>

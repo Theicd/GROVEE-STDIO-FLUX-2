@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { JervCanvas } from "./JervCanvas";
 import { createFluxWorker, postToFluxWorker } from "./fluxClient";
+import { formatGenProgressStatus } from "./genProgressLabel";
 import { pickLandingContent } from "./landingContent";
 import { shouldEnterStudio, shouldShowIntro } from "./loadOrchestration";
 import { buildFluxPrompt } from "./promptBuilder";
@@ -105,6 +106,7 @@ export default function App() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [genProgress, setGenProgress] = useState(0);
   const [genTokens, setGenTokens] = useState({ count: 0, total: 0 });
+  const [genHint, setGenHint] = useState("");
   const [gallery, setGallery] = useState<GenerationItem[]>([]);
   const galleryHydratedRef = useRef(false);
   const [workspaceVisible, setWorkspaceVisible] = useState(false);
@@ -222,17 +224,9 @@ export default function App() {
           if (!generatingModelRef.current) break;
           setGenProgress(msg.progress);
           setGenTokens({ count: msg.count, total: msg.total });
-          const phases = tRef.current.status.genPhases;
-          if (msg.phase && phases[msg.phase as keyof typeof phases]) {
-            let label = phases[msg.phase as keyof typeof phases];
-            if (msg.phase === "denoise" && msg.total > 0 && msg.total <= 16) {
-              label = `${label} ${msg.count}/${msg.total}`;
-            }
-            if (msg.elapsedSec && msg.elapsedSec >= 3) {
-              label = `${label} · ${msg.elapsedSec}s`;
-            }
-            setStatus(label);
-          }
+          const { label, hint } = formatGenProgressStatus(tRef.current.status.genPhases, msg);
+          if (label) setStatus(label);
+          setGenHint(hint);
           break;
         }
         case "image_ready": {
@@ -254,6 +248,7 @@ export default function App() {
           generatingModelRef.current = false;
           setIsGenerating(false);
           setGenProgress(0);
+          setGenHint("");
           setStatus(tRef.current.status.imageReady);
           break;
         }
@@ -262,6 +257,7 @@ export default function App() {
             generatingModelRef.current = false;
             setIsGenerating(false);
             setGenProgress(0);
+            setGenHint("");
             setStatus(tRef.current.status.stopped);
           }
           break;
@@ -389,6 +385,7 @@ export default function App() {
       setIsGenerating(true);
       setGenProgress(0);
       setGenTokens({ count: 0, total: 0 });
+      setGenHint("");
       genStartRef.current = performance.now();
       setStatus(tRef.current.status.generating);
       const settings = fluxSettingsRef.current;
@@ -531,6 +528,7 @@ export default function App() {
         genProgress={genProgress}
         genTokenCount={genTokens.count}
         genTokenTotal={genTokens.total}
+        genHint={genHint}
         onPromptChange={setPrompt}
         onOpenSettings={() => setSettingsOpen((v) => !v)}
         onGenerate={() => runGenerate(prompt)}

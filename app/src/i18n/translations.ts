@@ -90,8 +90,13 @@ export type TranslationTree = {
     genPhases: {
       tokenize: string;
       gpu_prep: string;
+      gpu_prep_first: string;
+      gpu_prep_hint: string;
       encode: string;
+      encode_first: string;
       denoise: string;
+      denoise_first: string;
+      denoise_eta: string;
       vae: string;
       done: string;
     };
@@ -212,8 +217,13 @@ export const translations: Record<Locale, TranslationTree> = {
       genPhases: {
         tokenize: "מקודד פרומפט",
         gpu_prep: "מכין GPU לרזולוציה",
+        gpu_prep_first: "טעינה ראשונית ל-GPU",
+        gpu_prep_hint: "פעם אחת לרזולוציה · אחר כך ~30 שנ' לתמונה",
         encode: "מקודד טקסט",
-        denoise: "מייצר",
+        encode_first: "מתחיל ייצור ראשון",
+        denoise: "מייצר תמונה",
+        denoise_first: "יוצר תמונה ראשונה",
+        denoise_eta: "~30 שנ' לתמונה",
         vae: "מפענח תמונה",
         done: "מסיים",
       },
@@ -332,8 +342,13 @@ export const translations: Record<Locale, TranslationTree> = {
       genPhases: {
         tokenize: "Tokenizing prompt",
         gpu_prep: "Preparing GPU for resolution",
+        gpu_prep_first: "First-time GPU warmup",
+        gpu_prep_hint: "Once per resolution · then ~30s per image",
         encode: "Encoding text",
-        denoise: "Rendering",
+        encode_first: "Starting first render",
+        denoise: "Rendering image",
+        denoise_first: "First image render",
+        denoise_eta: "~30s per image",
         vae: "Decoding image",
         done: "Finishing",
       },

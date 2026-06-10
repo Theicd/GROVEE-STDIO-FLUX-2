@@ -46,6 +46,10 @@ export type FluxGenerateProgressDetail = {
   denoiseStep?: number;
   denoiseTotal?: number;
   elapsedSec?: number;
+  /** One-time GPU compile/warmup for this resolution (can take minutes). */
+  firstWarmup?: boolean;
+  /** First image after session load — typical render ~30s once warmup is done. */
+  firstGeneration?: boolean;
 };
 
 export type FluxGenerateOptions = {
@@ -65,6 +69,8 @@ export function fluxGenProgressToWire(detail: FluxGenerateProgressDetail): {
   progress: number;
   phase: FluxGenPhase;
   elapsedSec?: number;
+  firstWarmup?: boolean;
+  firstGeneration?: boolean;
 } {
   const progress = Math.min(1, Math.max(0, detail.fraction));
   const denoiseTotal = detail.denoiseTotal;
@@ -76,6 +82,8 @@ export function fluxGenProgressToWire(detail: FluxGenerateProgressDetail): {
       progress,
       phase: detail.phase,
       elapsedSec: detail.elapsedSec,
+      firstWarmup: detail.firstWarmup,
+      firstGeneration: detail.firstGeneration,
     };
   }
   return {
@@ -84,6 +92,8 @@ export function fluxGenProgressToWire(detail: FluxGenerateProgressDetail): {
     progress,
     phase: detail.phase,
     elapsedSec: detail.elapsedSec,
+    firstWarmup: detail.firstWarmup,
+    firstGeneration: detail.firstGeneration,
   };
 }
 
@@ -567,6 +577,7 @@ export class FluxPipeline {
   private config: FluxConfig | null = null;
   private abortRequested = false;
   private warmedResolutions = new Set<string>();
+  private hasGeneratedOnce = false;
 
   async load(onProgress?: (p: FluxLoadProgress) => void): Promise<void> {
     await requestPersistentStorage();
@@ -648,10 +659,16 @@ export class FluxPipeline {
         fraction: frac,
         phase: "gpu_prep",
         elapsedSec,
+        firstWarmup: true,
       });
     }, 1000);
 
-    this.reportProgress(onProgress, { fraction: 0.02, phase: "gpu_prep", elapsedSec: 0 });
+    this.reportProgress(onProgress, {
+      fraction: 0.02,
+      phase: "gpu_prep",
+      elapsedSec: 0,
+      firstWarmup: true,
+    });
 
     try {
       await this.engine.prepareCustomTransformerStageSetup({
@@ -704,9 +721,14 @@ export class FluxPipeline {
     const plannedTextTokens = plannedCustomTextTokens(tokenized.tokenCount, seqLen);
     const params = buildGenerateParams(tokenized, gen, this.config);
 
+    const isFirstGeneration = !this.hasGeneratedOnce;
     const firstResolutionWarmup = await this.warmResolutionForGenerate(gen, plannedTextTokens, onProgress);
 
-    this.reportProgress(onProgress, { fraction: 0.32, phase: "encode" });
+    this.reportProgress(onProgress, {
+      fraction: 0.32,
+      phase: "encode",
+      firstGeneration: isFirstGeneration,
+    });
 
     const estimateMs = firstResolutionWarmup
       ? Math.max(lastFluxGenerateDurationMs, 120_000)
@@ -724,6 +746,7 @@ export class FluxPipeline {
         denoiseStep,
         denoiseTotal: numSteps,
         elapsedSec,
+        firstGeneration: isFirstGeneration,
       });
     }, 800);
 
@@ -750,6 +773,7 @@ export class FluxPipeline {
       denoiseStep: numSteps,
       denoiseTotal: numSteps,
     });
+    this.hasGeneratedOnce = true;
     return result.imageData;
   }
 
