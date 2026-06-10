@@ -1,4 +1,4 @@
-export const GALLERY_PAGE_SIZE = 4;
+export const GALLERY_PAGE_SIZE = 3;
 
 export function galleryPageCount(itemCount: number): number {
   if (itemCount <= 0) return 0;

@@ -32,8 +32,43 @@ export function ImageCard({
     await navigator.clipboard.writeText(item.prompt);
   };
 
+  const isCarousel = variant === "carousel";
+
+  const actionButtons = (
+    <>
+      <button
+        type="button"
+        className={isCarousel ? "img-card__toolbar-btn" : "hal-card-btn"}
+        onClick={download}
+      >
+        {t.gallery.save}
+      </button>
+      {!isCarousel ? (
+        <>
+          <button type="button" className="hal-card-btn" onClick={() => void copyPrompt()}>
+            {t.gallery.copy}
+          </button>
+          <button type="button" className="hal-card-btn" onClick={() => onRegenerate(item.prompt)}>
+            {t.gallery.rerun}
+          </button>
+        </>
+      ) : null}
+      <button
+        type="button"
+        className={
+          isCarousel
+            ? "img-card__toolbar-btn img-card__toolbar-btn--danger"
+            : "hal-card-btn hal-card-btn--danger"
+        }
+        onClick={() => onDelete(item.id)}
+      >
+        {t.gallery.del}
+      </button>
+    </>
+  );
+
   return (
-    <article className={`img-card${variant === "carousel" ? " img-card--carousel" : ""}`}>
+    <article className={`img-card${isCarousel ? " img-card--carousel" : ""}`}>
       <div className="img-card__visual">
         <button
           type="button"
@@ -49,6 +84,15 @@ export function ImageCard({
               loading="lazy"
               data-testid="gallery-image"
             />
+            {isCarousel ? (
+              <p
+                className="img-card__prompt img-card__prompt--overlay"
+                dir="auto"
+                title={item.prompt}
+              >
+                {item.prompt}
+              </p>
+            ) : null}
             <span className="img-card__badge" dir="ltr">
               {model.shortLabel}
             </span>
@@ -56,36 +100,21 @@ export function ImageCard({
               {item.width}×{item.height} · {(item.durationMs / 1000).toFixed(1)}s
             </span>
           </div>
-          {variant === "carousel" ? (
-            <div className="img-card__reflect" aria-hidden="true">
-              <img src={item.imageUrl} alt="" />
-            </div>
-          ) : null}
         </button>
+        {isCarousel ? (
+          <div className="img-card__toolbar" onClick={(e) => e.stopPropagation()}>
+            {actionButtons}
+          </div>
+        ) : null}
       </div>
-      <div className="img-card__meta">
-        <p className="img-card__prompt" dir="auto" title={item.prompt}>
-          {item.prompt}
-        </p>
-        <div className="img-card__actions">
-          <button type="button" className="hal-card-btn" onClick={download}>
-            {t.gallery.save}
-          </button>
-          <button type="button" className="hal-card-btn" onClick={() => void copyPrompt()}>
-            {t.gallery.copy}
-          </button>
-          <button type="button" className="hal-card-btn" onClick={() => onRegenerate(item.prompt)}>
-            {t.gallery.rerun}
-          </button>
-          <button
-            type="button"
-            className="hal-card-btn hal-card-btn--danger"
-            onClick={() => onDelete(item.id)}
-          >
-            {t.gallery.del}
-          </button>
+      {!isCarousel ? (
+        <div className="img-card__meta">
+          <p className="img-card__prompt" dir="auto" title={item.prompt}>
+            {item.prompt}
+          </p>
+          <div className="img-card__actions">{actionButtons}</div>
         </div>
-      </div>
+      ) : null}
     </article>
   );
 }

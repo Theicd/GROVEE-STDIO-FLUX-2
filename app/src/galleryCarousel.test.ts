@@ -8,12 +8,13 @@ import {
 } from "./galleryCarousel";
 
 describe("galleryCarousel", () => {
-  it("pages items in groups of four", () => {
+  it("pages items in groups of three", () => {
     const items = [1, 2, 3, 4, 5, 6, 7];
-    expect(galleryPageCount(items.length)).toBe(2);
-    expect(galleryPageItems(items, 0)).toEqual([1, 2, 3, 4]);
-    expect(galleryPageItems(items, 1)).toEqual([5, 6, 7]);
-    expect(GALLERY_PAGE_SIZE).toBe(4);
+    expect(galleryPageCount(items.length)).toBe(3);
+    expect(galleryPageItems(items, 0)).toEqual([1, 2, 3]);
+    expect(galleryPageItems(items, 1)).toEqual([4, 5, 6]);
+    expect(galleryPageItems(items, 2)).toEqual([7]);
+    expect(GALLERY_PAGE_SIZE).toBe(3);
   });
 
   it("clamps page when items shrink", () => {

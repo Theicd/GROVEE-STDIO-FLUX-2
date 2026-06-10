@@ -26,6 +26,44 @@ type GallerySlide = {
 
 const GALLERY_SLIDE_MS = 620;
 
+function GalleryTrack({
+  items,
+  className,
+  onOpen,
+  onRegenerate,
+  onDelete,
+  ariaHidden,
+}: {
+  items: GenerationItem[];
+  className: string;
+  onOpen: (item: GenerationItem) => void;
+  onRegenerate: (prompt: string) => void;
+  onDelete: (id: string) => void;
+  ariaHidden?: boolean;
+}) {
+  const padCount = Math.max(0, GALLERY_PAGE_SIZE - items.length);
+
+  return (
+    <div className={className} aria-hidden={ariaHidden}>
+      {items.map((item) => (
+        <ImageCard
+          key={item.id}
+          item={item}
+          variant="carousel"
+          onOpen={() => onOpen(item)}
+          onRegenerate={onRegenerate}
+          onDelete={onDelete}
+        />
+      ))}
+      {padCount > 0
+        ? Array.from({ length: padCount }, (_, i) => (
+            <div key={`pad-${i}`} className="hal-gallery__pad" aria-hidden="true" />
+          ))
+        : null}
+    </div>
+  );
+}
+
 export function GenerationGallery({ items, onRegenerate, onDelete }: GenerationGalleryProps) {
   const { t, dir } = useLocale();
   const [page, setPage] = useState(0);
@@ -104,39 +142,23 @@ export function GenerationGallery({ items, onRegenerate, onDelete }: GenerationG
 
           <div className="hal-gallery__viewport" dir={dir}>
             {slide ? (
-              <div
+              <GalleryTrack
+                items={exiting}
                 className={`hal-gallery__track hal-gallery__track--exit hal-gallery__track--${slide.dir}`}
-                data-slots={Math.min(exiting.length, GALLERY_PAGE_SIZE)}
-                aria-hidden="true"
-              >
-                {exiting.map((item) => (
-                  <ImageCard
-                    key={item.id}
-                    item={item}
-                    variant="carousel"
-                    onOpen={() => setLightboxItem(item)}
-                    onRegenerate={onRegenerate}
-                    onDelete={onDelete}
-                  />
-                ))}
-              </div>
+                onOpen={setLightboxItem}
+                onRegenerate={onRegenerate}
+                onDelete={onDelete}
+                ariaHidden
+              />
             ) : null}
 
-            <div
+            <GalleryTrack
+              items={entering}
               className={`hal-gallery__track${slide ? ` hal-gallery__track--enter hal-gallery__track--${slide.dir}` : ""}`}
-              data-slots={Math.min(entering.length, GALLERY_PAGE_SIZE)}
-            >
-              {entering.map((item) => (
-                <ImageCard
-                  key={item.id}
-                  item={item}
-                  variant="carousel"
-                  onOpen={() => setLightboxItem(item)}
-                  onRegenerate={onRegenerate}
-                  onDelete={onDelete}
-                />
-              ))}
-            </div>
+              onOpen={setLightboxItem}
+              onRegenerate={onRegenerate}
+              onDelete={onDelete}
+            />
 
             {slide ? <div className="hal-gallery__sweep" aria-hidden="true" /> : null}
           </div>
