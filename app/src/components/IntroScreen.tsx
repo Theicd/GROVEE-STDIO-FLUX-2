@@ -61,7 +61,7 @@ export function IntroScreen({
   useEffect(() => {
     if (phase !== "loading" || logLine === lastLogRef.current) return;
     lastLogRef.current = logLine;
-    setConsoleLines((prev) => [...prev, logLine].slice(-6));
+    setConsoleLines((prev) => [...prev, logLine].slice(-3));
   }, [phase, logLine]);
 
   return (
@@ -122,6 +122,7 @@ export function IntroScreen({
           <div className="hal-download" data-testid="download-progress">
             <CircularProgress
               percent={sdProgress?.done ? 100 : pct}
+              size={112}
               indeterminate={indeterminate || compilePulse}
               label={compilePulse ? "COMPILE" : model.shortLabel}
             />
