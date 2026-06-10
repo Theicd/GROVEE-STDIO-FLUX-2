@@ -74,9 +74,10 @@ export function pickRandomSuggestions(
   return picked;
 }
 
-export function pickLandingContent() {
+export function pickLandingContent(headlines: readonly string[] = LANDING_HEADLINES) {
+  const pool = headlines.length ? headlines : LANDING_HEADLINES;
   return {
-    headline: LANDING_HEADLINES[Math.floor(Math.random() * LANDING_HEADLINES.length)],
+    headline: pool[Math.floor(Math.random() * pool.length)],
     suggestions: pickRandomSuggestions(3),
   };
 }

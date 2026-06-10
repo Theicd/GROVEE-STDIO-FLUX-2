@@ -1,4 +1,5 @@
-import { MODELS, SD15_BROWSER_AVAILABLE, SD15_UNAVAILABLE_MESSAGE } from "../modelRegistry";
+import { useLocale } from "../i18n/LocaleContext";
+import { MODELS, SD15_BROWSER_AVAILABLE } from "../modelRegistry";
 import { SD_SETTINGS_DEFAULTS, type SdModelSettings } from "../modelSettings";
 import { DEFAULT_NEGATIVE, type StylePreset } from "../promptBuilder";
 
@@ -12,14 +13,7 @@ type SettingsPanelProps = {
   onSdChange: (next: SdModelSettings | ((prev: SdModelSettings) => SdModelSettings)) => void;
 };
 
-const STYLES: { id: StylePreset; label: string }[] = [
-  { id: "photoreal", label: "Photoreal" },
-  { id: "none", label: "None" },
-  { id: "portrait", label: "Portrait" },
-  { id: "landscape", label: "Landscape" },
-  { id: "product", label: "Product" },
-  { id: "anime", label: "Anime" },
-];
+const STYLE_IDS: StylePreset[] = ["photoreal", "none", "portrait", "landscape", "product", "anime"];
 
 function SliderField({
   label,
@@ -69,6 +63,8 @@ export function SettingsPanel({
   onGlobalNegativeChange,
   onSdChange,
 }: SettingsPanelProps) {
+  const { t, dir } = useLocale();
+
   if (!open) return null;
 
   const model = MODELS.sd15;
@@ -77,7 +73,7 @@ export function SettingsPanel({
     <div className="settings-overlay" role="presentation" onClick={onClose}>
       <aside
         className="settings-panel"
-        dir="ltr"
+        dir={dir}
         role="dialog"
         aria-labelledby="settings-title"
         aria-modal="true"
@@ -86,38 +82,38 @@ export function SettingsPanel({
       >
         <header className="settings-header">
           <div>
-            <h2 id="settings-title">{model.label}</h2>
-            <p className="settings-subtitle">Generation settings</p>
+            <h2 id="settings-title">{t.settings.title}</h2>
+            <p className="settings-subtitle">{t.settings.subtitle}</p>
           </div>
-          <button type="button" className="settings-close" onClick={onClose} aria-label="Close settings">
+          <button type="button" className="settings-close" onClick={onClose} aria-label={t.settings.close}>
             ×
           </button>
         </header>
 
         <div className="settings-readonly" dir="ltr">
           <div>
-            <span className="settings-readonly-label">Model ID</span>
+            <span className="settings-readonly-label">{t.settings.modelId}</span>
             <span>{model.hfId}</span>
           </div>
           <div>
-            <span className="settings-readonly-label">Device</span>
+            <span className="settings-readonly-label">{t.settings.device}</span>
             <span>{deviceLabel || "—"}</span>
           </div>
           <div>
-            <span className="settings-readonly-label">Resolution</span>
+            <span className="settings-readonly-label">{t.settings.resolution}</span>
             <span>{model.resolution}</span>
           </div>
         </div>
 
         {!SD15_BROWSER_AVAILABLE ? (
           <div className="settings-unavailable-banner" role="alert">
-            {SD15_UNAVAILABLE_MESSAGE}
+            {t.errors.sdUnavailable}
           </div>
         ) : (
           <>
             <div className="settings-body">
               <SliderField
-                label="Guidance scale (CFG)"
+                label={t.settings.cfg}
                 value={sdSettings.guidanceScale}
                 min={1}
                 max={20}
@@ -125,7 +121,7 @@ export function SettingsPanel({
                 onChange={(guidanceScale) => onSdChange((prev) => ({ ...prev, guidanceScale }))}
               />
               <SliderField
-                label="Inference steps"
+                label={t.settings.steps}
                 value={sdSettings.numInferenceSteps}
                 min={5}
                 max={50}
@@ -133,36 +129,33 @@ export function SettingsPanel({
                 onChange={(numInferenceSteps) =>
                   onSdChange((prev) => ({ ...prev, numInferenceSteps: Math.round(numInferenceSteps) }))
                 }
-                hint="5–50 steps (subsampled from SD 1.5 schedule)"
+                hint={t.settings.stepsHint}
               />
-              <p className="settings-note">SD 1.5 uses native negative_prompt (separate channel).</p>
+              <p className="settings-note">{t.settings.negativeNote}</p>
             </div>
 
             <div className="settings-shared">
-              <div className="style-chips" role="group" aria-label="Style preset">
-                {STYLES.map((s) => (
+              <div className="style-chips" role="group" aria-label={t.settings.stylePreset}>
+                {STYLE_IDS.map((id) => (
                   <button
-                    key={s.id}
+                    key={id}
                     type="button"
-                    className={`style-chip ${sdSettings.style === s.id ? "active" : ""}`}
-                    onClick={() => onSdChange((prev) => ({ ...prev, style: s.id }))}
+                    className={`style-chip ${sdSettings.style === id ? "active" : ""}`}
+                    onClick={() => onSdChange((prev) => ({ ...prev, style: id }))}
                   >
-                    {s.label}
+                    {t.settings.styles[id]}
                   </button>
                 ))}
               </div>
 
               <label className="settings-field">
-                <span>Negative prompt</span>
-                <p className="settings-field-hint">
-                  Shared preset for all generations. Clear to disable custom terms. Style may still add terms unless
-                  set to None.
-                </p>
+                <span>{t.settings.negativePrompt}</span>
+                <p className="settings-field-hint">{t.settings.negativeHint}</p>
                 <textarea
                   className="negative-textarea"
-                  dir="ltr"
+                  dir="auto"
                   rows={4}
-                  placeholder="Optional custom negative terms…"
+                  placeholder={t.settings.negativePlaceholder}
                   value={globalNegativePrompt}
                   onChange={(e) => onGlobalNegativeChange(e.target.value)}
                 />
@@ -170,17 +163,17 @@ export function SettingsPanel({
 
               <div className="settings-negative-actions">
                 <button type="button" className="text-btn" onClick={() => onGlobalNegativeChange("")}>
-                  Clear negative
+                  {t.settings.clearNegative}
                 </button>
                 <button type="button" className="text-btn" onClick={() => onGlobalNegativeChange(DEFAULT_NEGATIVE)}>
-                  Reset to recommended defaults
+                  {t.settings.resetNegative}
                 </button>
               </div>
             </div>
 
             <footer className="settings-footer">
               <button type="button" className="text-btn" onClick={() => onSdChange({ ...SD_SETTINGS_DEFAULTS })}>
-                Reset all to recommended defaults
+                {t.settings.resetAll}
               </button>
             </footer>
           </>

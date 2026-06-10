@@ -1,6 +1,7 @@
-import type { GenerationItem } from "../types";
 import { APP_DOWNLOAD_PREFIX } from "../appBranding";
+import { useLocale } from "../i18n/LocaleContext";
 import { MODELS } from "../modelRegistry";
+import type { GenerationItem } from "../types";
 
 type ImageCardProps = {
   item: GenerationItem;
@@ -9,6 +10,7 @@ type ImageCardProps = {
 };
 
 export function ImageCard({ item, onRegenerate, onDelete }: ImageCardProps) {
+  const { t } = useLocale();
   const model = MODELS.sd15;
 
   const download = () => {
@@ -44,16 +46,16 @@ export function ImageCard({ item, onRegenerate, onDelete }: ImageCardProps) {
         </p>
         <div className="img-card__actions">
           <button type="button" className="hal-card-btn" onClick={download}>
-            SAVE
+            {t.gallery.save}
           </button>
           <button type="button" className="hal-card-btn" onClick={() => void copyPrompt()}>
-            COPY
+            {t.gallery.copy}
           </button>
           <button type="button" className="hal-card-btn" onClick={() => onRegenerate(item.prompt)}>
-            RE-RUN
+            {t.gallery.rerun}
           </button>
           <button type="button" className="hal-card-btn hal-card-btn--danger" onClick={() => onDelete(item.id)}>
-            DEL
+            {t.gallery.del}
           </button>
         </div>
       </div>

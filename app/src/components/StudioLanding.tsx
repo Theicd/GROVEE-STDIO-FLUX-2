@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { useLocale } from "../i18n/LocaleContext";
 import {
   pickRandomSuggestions,
   suggestionEnterDurationMs,
@@ -19,6 +20,7 @@ type ChipAnimPhase = "idle" | "exit" | "enter";
 const CHIP_COUNT = 3;
 
 export function StudioLanding({ headline, initialSuggestions, onPick }: StudioLandingProps) {
+  const { t, dir } = useLocale();
   const [suggestions, setSuggestions] = useState<LandingSuggestion[]>(
     () => initialSuggestions ?? pickRandomSuggestions(CHIP_COUNT),
   );
@@ -62,11 +64,9 @@ export function StudioLanding({ headline, initialSuggestions, onPick }: StudioLa
   }, [rotateSuggestions]);
 
   return (
-    <div className="hal-studio-landing" dir="rtl">
+    <div className="hal-studio-landing" dir={dir}>
       <h1 className="hal-studio-landing__headline">{headline}</h1>
-      <p className="hal-studio-landing__hint" dir="ltr">
-        QUICK PROMPTS
-      </p>
+      <p className="hal-studio-landing__hint">{t.studio.quickPrompts}</p>
       <div
         className="hal-studio-landing__chips"
         data-phase={animPhase}

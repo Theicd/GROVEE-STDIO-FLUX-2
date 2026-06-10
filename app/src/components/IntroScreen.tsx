@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { APP_NAME, APP_TAGLINE, INTRO_TYPEWRITER_PHRASES } from "../appBranding";
-import { useTypewriter } from "../hooks/useTypewriter";
+import { APP_NAME } from "../appBranding";
+import { useLocaleTypewriter } from "../hooks/useLocaleTypewriter";
+import { useLocale } from "../i18n/LocaleContext";
 import { JervCanvas } from "../JervCanvas";
 import { formatBytes, formatSpeed } from "../formatBytes";
 import { DEFAULT_MODEL_ID, MODELS } from "../modelRegistry";
 import type { ModelLoadState } from "../types";
 import { CircularProgress } from "./CircularProgress";
+import { IntroTopBar } from "./IntroTopBar";
 import { LoadingHoloGallery } from "./LoadingHoloGallery";
 
 type IntroScreenProps = {
@@ -32,6 +34,7 @@ export function IntroScreen({
   webgpu,
   onLoad,
 }: IntroScreenProps) {
+  const { t, dir } = useLocale();
   const model = MODELS.sd15;
   const sdProgress = modelProgress.sd15;
   const displayTotal = aggregateTotal > 0 ? aggregateTotal : model.estimatedBytes;
@@ -39,16 +42,21 @@ export function IntroScreen({
   const hasByteProgress = aggregateLoaded > 0;
   const indeterminate = phase === "loading" && !hasByteProgress;
   const compilePulse = sdProgress?.compiling === true;
-  const typewriterText = useTypewriter(INTRO_TYPEWRITER_PHRASES);
-  const [consoleLines, setConsoleLines] = useState<string[]>(["> STANDBY"]);
+  const typewriterText = useLocaleTypewriter();
+  const [consoleLines, setConsoleLines] = useState<string[]>([t.intro.standby]);
   const lastLogRef = useRef("");
+
+  useEffect(() => {
+    setConsoleLines([t.intro.standby]);
+    lastLogRef.current = "";
+  }, [t.intro.standby]);
 
   const logLine = useMemo(() => {
     if (compilePulse) return `> COMPILE: ${sdProgress?.currentFile || "UNet"}…`;
     if (sdProgress?.currentFile) return `> FETCH: ${sdProgress.currentFile}`;
     if (status) return `> ${status.toUpperCase()}`;
-    return "> STANDBY";
-  }, [compilePulse, sdProgress?.currentFile, status]);
+    return t.intro.standby;
+  }, [compilePulse, sdProgress?.currentFile, status, t.intro.standby]);
 
   useEffect(() => {
     if (phase !== "loading" || logLine === lastLogRef.current) return;
@@ -62,16 +70,17 @@ export function IntroScreen({
       data-testid="intro-screen"
       data-phase={phase}
       aria-busy={phase === "loading"}
-      dir="rtl"
+      dir={dir}
     >
       <JervCanvas />
       <LoadingHoloGallery />
       <div className="scanlines" aria-hidden="true" />
+      <IntroTopBar webgpu={webgpu} />
 
       <div className="hal-landing__content">
         <header className="hal-landing__header">
           <p className="hal-landing__eyebrow" dir="ltr">
-            {APP_TAGLINE}
+            {t.app.tagline}
           </p>
           <h1 className="hal-landing__title" dir="ltr">
             {APP_NAME}
@@ -84,9 +93,11 @@ export function IntroScreen({
           </p>
         </header>
 
+        <p className="hal-landing__note">{t.intro.firstLoadNote}</p>
+
         {!webgpu ? (
           <p className="hal-warn" role="alert">
-            WebGPU לא זוהה — WASM עלול להיות איטי.
+            {t.intro.webgpuWarn}
           </p>
         ) : null}
 
@@ -94,7 +105,7 @@ export function IntroScreen({
           <div className="hal-landing__start">
             <div className="hal-model-chip" data-testid="model-sd15" dir="ltr">
               <span className="hal-model-chip__name">{model.label}</span>
-              <span className="hal-model-chip__meta">{model.introBlurb}</span>
+              <span className="hal-model-chip__meta">{t.intro.modelMeta}</span>
             </div>
 
             <button
@@ -104,7 +115,7 @@ export function IntroScreen({
               onClick={onLoad}
             >
               <span className="btn-hal__shine" aria-hidden="true" />
-              INITIALIZE MODEL
+              {t.intro.initialize}
             </button>
           </div>
         ) : (

@@ -1,6 +1,9 @@
+import { APP_NAME } from "../appBranding";
+import { useLocale } from "../i18n/LocaleContext";
 import { SD15_BROWSER_AVAILABLE, MODELS } from "../modelRegistry";
 import { formatSdSettingsHint, type SdModelSettings } from "../modelSettings";
-import { APP_NAME, APP_TAGLINE } from "../appBranding";
+
+import { LangToggle } from "./LangToggle";
 
 type PromptStudioProps = {
   prompt: string;
@@ -29,14 +32,16 @@ export function PromptStudio({
   onGenerate,
   onStop,
 }: PromptStudioProps) {
+  const { t, dir } = useLocale();
   const canGenerate =
     prompt.trim().length > 0 && !isGenerating && isModelLoaded && SD15_BROWSER_AVAILABLE;
   const model = MODELS.sd15;
   const settingsHint = formatSdSettingsHint(sdSettings);
   const scaleLabel = `${sdSettings.width}×${sdSettings.height}`;
+  const displayStatus = isGenerating ? t.studio.generating : status;
 
   return (
-    <div className="workspace-header" data-testid="composer-bar" dir="rtl">
+    <div className="workspace-header" data-testid="composer-bar" dir={dir}>
       <header className="hal-studio-bar">
         <div className="hal-studio-bar__status" dir="ltr">
           <span className="hal-pulse-dot" aria-hidden="true" />
@@ -44,21 +49,22 @@ export function PromptStudio({
         </div>
         <div className="hal-studio-bar__meta" dir="ltr">
           <span className="hal-meta-chip">
-            MEMORY <strong>OK</strong>
+            {t.studio.memoryOk} <strong>OK</strong>
           </span>
           <span className="hal-meta-chip">
-            MODEL <strong>{model.shortLabel}</strong>
+            {t.studio.model} <strong>{model.shortLabel}</strong>
           </span>
           <span className="hal-meta-chip hal-meta-chip--dim">{deviceLabel || "READY"}</span>
+          <LangToggle />
         </div>
         <p className="hal-studio-bar__tagline" dir="ltr">
-          {APP_TAGLINE}
+          {t.app.tagline}
         </p>
       </header>
 
       <section className="input-terminal">
-        <label className="input-terminal__label" htmlFor="prompt-input" dir="ltr">
-          ENTER PROMPT
+        <label className="input-terminal__label" htmlFor="prompt-input">
+          {t.studio.enterPrompt}
         </label>
         <div className="input-terminal__row">
           <input
@@ -66,8 +72,8 @@ export function PromptStudio({
             className="input-terminal__field"
             type="text"
             dir="auto"
-            placeholder="תיאור תמונה…"
-            aria-label="Image prompt"
+            placeholder={t.studio.promptPlaceholder}
+            aria-label={t.studio.enterPrompt}
             value={prompt}
             onChange={(e) => onPromptChange(e.target.value)}
             onKeyDown={(e) => {
@@ -83,8 +89,8 @@ export function PromptStudio({
               type="button"
               className={`input-terminal__gear ${settingsOpen ? "active" : ""}`}
               data-testid="settings-btn"
-              aria-label={`${model.label} settings`}
-              title="Settings"
+              aria-label={t.studio.settings}
+              title={t.studio.settings}
               onClick={onOpenSettings}
               disabled={isGenerating}
             >
@@ -96,7 +102,7 @@ export function PromptStudio({
                 className="btn-hal btn-hal--small btn-hal--stop"
                 onClick={onStop}
               >
-                STOP
+                {t.studio.stop}
               </button>
             ) : (
               <button
@@ -105,7 +111,7 @@ export function PromptStudio({
                 data-testid="generate-btn"
                 disabled={!canGenerate}
                 onClick={onGenerate}
-                aria-label="Generate image"
+                aria-label={t.studio.generate}
               >
                 <span className="btn-hal__shine" aria-hidden="true" />
                 ▶
@@ -115,9 +121,11 @@ export function PromptStudio({
         </div>
         <div className="input-terminal__meta" dir="ltr">
           <span>{settingsHint}</span>
-          <span>SCALE {scaleLabel}</span>
-          <span className="input-terminal__status">{isGenerating ? "GENERATING…" : status}</span>
-          {!SD15_BROWSER_AVAILABLE ? <span>SD UNAVAILABLE</span> : null}
+          <span>
+            {t.studio.scale} {scaleLabel}
+          </span>
+          <span className="input-terminal__status">{displayStatus}</span>
+          {!SD15_BROWSER_AVAILABLE ? <span>{t.studio.sdUnavailable}</span> : null}
         </div>
       </section>
     </div>

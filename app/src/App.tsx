@@ -17,7 +17,6 @@ import {
   DEFAULT_MODEL_ID,
   MODELS,
   SD15_BROWSER_AVAILABLE,
-  SD15_UNAVAILABLE_MESSAGE,
   totalBytesForSelection,
   type ModelId,
 } from "./modelRegistry";
@@ -28,6 +27,7 @@ import { SettingsPanel } from "./components/SettingsPanel";
 import { StudioLanding } from "./components/StudioLanding";
 import { GenerationGallery } from "./components/GenerationGallery";
 import { GeneratingSplash } from "./components/GeneratingSplash";
+import { useLocale } from "./i18n/LocaleContext";
 import { publishJanusQa, QA_AUTOGEN, QA_JANUS_MODE, QA_PROMPT } from "./janusQaProbe";
 
 function emptyModelLoadState(): ModelLoadState {
@@ -64,6 +64,10 @@ function markModelLoaded(
 }
 
 export default function App() {
+  const { t, dir } = useLocale();
+  const tRef = useRef(t);
+  tRef.current = t;
+
   const sdWorkerRef = useRef<Worker | null>(null);
   const genStartRef = useRef(0);
   const lastUserPromptRef = useRef("");
@@ -86,7 +90,7 @@ export default function App() {
   const [aggregateTotal, setAggregateTotal] = useState(0);
   const [downloadSpeed, setDownloadSpeed] = useState(0);
   const [modelProgress, setModelProgress] = useState<Partial<Record<ModelId, ModelLoadState>>>({});
-  const [status, setStatus] = useState("Ready to load SD 1.5");
+  const [status, setStatus] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const [prompt, setPrompt] = useState("");
@@ -103,10 +107,9 @@ export default function App() {
   const [gallery, setGallery] = useState<GenerationItem[]>([]);
   const [workspaceVisible, setWorkspaceVisible] = useState(false);
 
-  const landing = useMemo(() => pickLandingContent(), []);
+  const landing = useMemo(() => pickLandingContent(t.studio.headlines), [t.studio.headlines]);
   const showLanding = phase === "ready" && gallery.length === 0 && !isGenerating;
   const showIntro = shouldShowIntro(phase, isLoaded ? 1 : 0);
-  const model = MODELS.sd15;
 
   const recomputeAggregate = useCallback((next: Partial<Record<ModelId, ModelLoadState>>) => {
     const row = next.sd15;
@@ -119,8 +122,8 @@ export default function App() {
   const enterStudio = useCallback(() => {
     if (phaseRef.current === "ready") return;
     setPhase("ready");
-    setStatus(`${model.shortLabel} ready — studio open`);
-  }, [model.shortLabel]);
+    setStatus(tRef.current.status.modelReady);
+  }, []);
 
   const onModelLoaded = useCallback(
     (device: string) => {
@@ -188,7 +191,11 @@ export default function App() {
             return next;
           });
           if (msg.file || isCompile) {
-            setStatus(isCompile ? "SD 1.5: compiling on WebGPU (2–5 min)…" : `SD 1.5: downloading ${msg.file}…`);
+            setStatus(
+              isCompile
+                ? tRef.current.status.compiling
+                : `${tRef.current.status.downloading} ${msg.file}…`,
+            );
           }
           break;
         }
@@ -221,7 +228,7 @@ export default function App() {
           generatingModelRef.current = false;
           setIsGenerating(false);
           setGenProgress(0);
-          setStatus("Image ready");
+          setStatus(tRef.current.status.imageReady);
           break;
         }
         case "aborted":
@@ -229,7 +236,7 @@ export default function App() {
             generatingModelRef.current = false;
             setIsGenerating(false);
             setGenProgress(0);
-            setStatus("Generation stopped");
+            setStatus(tRef.current.status.stopped);
           }
           break;
         case "error":
@@ -270,9 +277,15 @@ export default function App() {
     };
   }, [ensureSdWorker]);
 
+  useEffect(() => {
+    if (phase === "start" && !isLoaded && !isGenerating) {
+      setStatus(t.status.readyToLoad);
+    }
+  }, [t.status.readyToLoad, phase, isLoaded, isGenerating]);
+
   const loadModels = useCallback(() => {
     if (!SD15_BROWSER_AVAILABLE) {
-      setError(SD15_UNAVAILABLE_MESSAGE);
+      setError(tRef.current.errors.sdUnavailable);
       return;
     }
     setError(null);
@@ -287,7 +300,7 @@ export default function App() {
     const initial = { sd15: emptyModelLoadState() };
     setModelProgress(initial);
     recomputeAggregate(initial);
-    setStatus("Preparing download…");
+    setStatus(tRef.current.status.preparingDownload);
     ensureSdWorker();
     postToSdWorker(sdWorkerRef.current!, { type: "load" });
   }, [ensureSdWorker, recomputeAggregate]);
@@ -315,11 +328,11 @@ export default function App() {
   const runGenerate = useCallback(
     (rawPrompt: string) => {
       if (!rawPrompt.trim() || !loadedRef.current) {
-        if (!loadedRef.current) setError("SD 1.5 is not loaded yet");
+        if (!loadedRef.current) setError(tRef.current.status.notLoaded);
         return;
       }
       if (!SD15_BROWSER_AVAILABLE) {
-        setError(SD15_UNAVAILABLE_MESSAGE);
+        setError(tRef.current.errors.sdUnavailable);
         return;
       }
       lastUserPromptRef.current = rawPrompt;
@@ -329,7 +342,7 @@ export default function App() {
       setGenProgress(0);
       setGenTokens({ count: 0, total: 0 });
       genStartRef.current = performance.now();
-      setStatus("Generating…");
+      setStatus(tRef.current.status.generating);
       const settings = sdSettingsRef.current;
       const negative = globalNegativePromptRef.current;
 
@@ -440,7 +453,7 @@ export default function App() {
 
   if (showIntro) {
     return (
-      <main className="app hal-app" data-testid="app-root" data-phase={phase} dir="rtl">
+      <main className="app hal-app" data-testid="app-root" data-phase={phase} dir={dir}>
         <IntroScreen
           phase={phase === "loading" ? "loading" : "start"}
           modelProgress={modelProgress}
@@ -466,7 +479,7 @@ export default function App() {
       className={`app app--studio workspace hal-app${workspaceVisible ? " workspace--visible" : ""}`}
       data-testid="app-studio"
       data-phase="ready"
-      dir="rtl"
+      dir={dir}
     >
       <JervCanvas />
       <div className="scanlines" aria-hidden="true" />
