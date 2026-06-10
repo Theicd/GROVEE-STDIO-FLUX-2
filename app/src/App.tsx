@@ -4,6 +4,7 @@ import { createSdWorker, postToSdWorker } from "./sdClient";
 import { pickLandingContent } from "./landingContent";
 import { shouldEnterStudio, shouldShowIntro } from "./loadOrchestration";
 import { buildSdPromptFromSettings } from "./promptBuilder";
+import { resolvePromptsForModel } from "./promptTranslate";
 import {
   loadGlobalNegativePrompt,
   loadModelSettings,
@@ -331,13 +332,25 @@ export default function App() {
       setStatus("Generating…");
       const settings = sdSettingsRef.current;
       const negative = globalNegativePromptRef.current;
-      const { prompt: sdPrompt, negativePrompt } = buildSdPromptFromSettings(rawPrompt, settings, negative);
-      postToSdWorker(ensureSdWorker(), {
-        type: "generate_image",
-        prompt: sdPrompt,
-        negativePrompt,
-        generation: sdSettingsToGeneration(settings),
-      });
+
+      void (async () => {
+        const { positive, negative: modelNegative } = await resolvePromptsForModel(
+          rawPrompt,
+          negative,
+        );
+        if (!generatingModelRef.current) return;
+        const { prompt: sdPrompt, negativePrompt } = buildSdPromptFromSettings(
+          positive,
+          settings,
+          modelNegative,
+        );
+        postToSdWorker(ensureSdWorker(), {
+          type: "generate_image",
+          prompt: sdPrompt,
+          negativePrompt,
+          generation: sdSettingsToGeneration(settings),
+        });
+      })();
     },
     [ensureSdWorker],
   );
