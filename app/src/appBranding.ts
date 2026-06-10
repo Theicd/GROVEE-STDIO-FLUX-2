@@ -13,7 +13,7 @@ export const APP_TAGLINE = "FLUX.2 // BROWSER ENGINE";
 
 export const APP_MARK = "F2";
 
-export const APP_DOWNLOAD_PREFIX = "grovee-flux2";
+export const APP_DOWNLOAD_PREFIX = "grovee-stdio";
 
 /** Hebrew typewriter phrases on the intro landing screen. */
 export const INTRO_TYPEWRITER_PHRASES = [

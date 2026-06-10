@@ -26,20 +26,14 @@ export const FLUX_SETTINGS_DEFAULTS: FluxModelSettings = {
   style: "photoreal",
 };
 
-const STORAGE_PREFIX = "grovee-flux2-settings-";
-const LEGACY_STORAGE_PREFIX = "janusgrove-settings-";
-export const GLOBAL_NEGATIVE_STORAGE_KEY = "grovee-flux2-negative-prompt";
+const STORAGE_PREFIX = "janusgrove-settings-";
+export const GLOBAL_NEGATIVE_STORAGE_KEY = "janusgrove-negative-prompt";
 
 const LEGACY_NEGATIVE_MODEL_KEYS = [
   `${STORAGE_PREFIX}flux`,
   `${STORAGE_PREFIX}sd15`,
   `${STORAGE_PREFIX}sana`,
   `${STORAGE_PREFIX}janus`,
-  `${LEGACY_STORAGE_PREFIX}flux`,
-  `${LEGACY_STORAGE_PREFIX}sd15`,
-  `${LEGACY_STORAGE_PREFIX}sana`,
-  `${LEGACY_STORAGE_PREFIX}janus`,
-  "janusgrove-negative-prompt",
 ] as const;
 
 function storageKey(modelId: ModelId): string {
@@ -109,9 +103,7 @@ function sanitizeFlux(raw: Partial<FluxModelSettings> | null | undefined): FluxM
 export function loadModelSettings(modelId: ModelId): FluxModelSettings {
   if (typeof localStorage === "undefined") return { ...FLUX_SETTINGS_DEFAULTS };
   try {
-    const raw =
-      localStorage.getItem(storageKey(modelId)) ??
-      localStorage.getItem(`${LEGACY_STORAGE_PREFIX}${modelId}`);
+    const raw = localStorage.getItem(storageKey(modelId));
     if (!raw) return { ...FLUX_SETTINGS_DEFAULTS };
     return sanitizeFlux(JSON.parse(raw));
   } catch {

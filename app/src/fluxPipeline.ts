@@ -13,7 +13,7 @@ export const FLUX_MODEL_BASE =
 
 export const FLUX_CUSTOM_KERNEL_BASE = `${FLUX_MODEL_BASE}/custom_lowbit`;
 
-export const FLUX_OPFS_CACHE_DIR = "grovee-flux2-cache";
+export const FLUX_OPFS_CACHE_DIR = "janusgrove-flux-cache";
 
 /**
  * Staged HF bundle size (~12.6 GiB per model card).

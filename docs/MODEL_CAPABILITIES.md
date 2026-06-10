@@ -16,7 +16,7 @@
 | UI | `app/src/App.tsx`, `PromptStudio.tsx`, `IntroScreen.tsx` |
 | Worker | `app/src/flux.worker.ts` |
 | Pipeline | `app/src/fluxPipeline.ts` — עוטף `app/public/flux2/flux2-engine.js` |
-| Cache | OPFS `grovee-flux2-cache` — שומר משקולות HF בין רענונים |
+| Cache | OPFS `janusgrove-flux-cache` — שומר משקולות HF בין רענונים (per-origin בדפדפן) |
 
 ---
 

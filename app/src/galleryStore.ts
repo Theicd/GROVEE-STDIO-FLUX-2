@@ -1,6 +1,6 @@
 import type { GenerationItem } from "./types";
 
-const DB_NAME = "grovee-flux2-gallery";
+const DB_NAME = "janusgrove-gallery";
 const STORE_NAME = "items";
 const DB_VERSION = 1;
 const MAX_ITEMS = 48;

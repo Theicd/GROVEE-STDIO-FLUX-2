@@ -1,6 +1,6 @@
 export type Locale = "he" | "en";
 
-export const LOCALE_STORAGE_KEY = "grovee-flux2-locale";
+export const LOCALE_STORAGE_KEY = "grovee-stdio-locale";
 
 export type TranslationTree = {
   app: {

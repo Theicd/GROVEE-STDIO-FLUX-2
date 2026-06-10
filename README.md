@@ -17,14 +17,19 @@ This is the real interface. The repo page on github.com is only source code + th
 > **First visit:** FLUX.2 Klein downloads in the browser (~12 GB, cached locally via OPFS) + GPU warmup (several minutes on first generate) → enter prompt → **▶**  
 > **Return visits:** model loads from browser cache — no reinstall, no npm.
 
+### Deploy / update the live UI
+
+Same pattern as [GROVEE STDIO (SD 1.5)](https://github.com/Theicd/GROVEE-STDIO): built files live on the **`gh-pages`** branch, not on `main`.
+
+```bash
+npm run deploy:pages
+```
+
+One-time repo setup: **Settings → Pages → Source: Deploy from branch → `gh-pages` / `/`**
+
 ### If you see only this README on Pages
 
-GitHub is serving the repo instead of the built app. Fix once:
-
-1. Repo **Settings → Pages → Build and deployment → Source: GitHub Actions**
-2. Push latest `main` (includes `.github/workflows/deploy-pages.yml`)
-3. **Actions** tab → wait for **Deploy GitHub Pages** to finish (green)
-4. Reload **https://theicd.github.io/GROVEE-STDIO-FLUX-2/** — you should see **GROVEE STDIO FLUX 2** intro
+`main` is source code only. Point Pages at **`gh-pages`**, then run `npm run deploy:pages` and reload **https://theicd.github.io/GROVEE-STDIO-FLUX-2/**
 
 ---
 
@@ -42,6 +47,7 @@ start.bat
 |---------|-------------|
 | `npm run dev` | Dev server (`base: ./`) |
 | `npm run build:pages` | Production build for GitHub Pages (`/GROVEE-STDIO-FLUX-2/`) |
+| `npm run deploy:pages` | Build + push `dist/` to `gh-pages` (updates live URL) |
 | `npm run qa:pages` | Smoke-check `dist/` after Pages build |
 | `npm test` | Unit tests |
 
