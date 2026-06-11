@@ -1,6 +1,19 @@
 # GROVEE STDIO FLUX 2
 
-**FLUX.2 Klein 4B** — AI image generation entirely in your browser (WebGPU). HAL-terminal UI.
+**FLUX.2 Klein 4B** — AI image generation **entirely in your browser** (WebGPU). HAL-terminal UI.
+
+> No Python. No CUDA. No installation. No server. Open a URL and generate.
+
+[![GROVEE STDIO FLUX 2 — demo video](https://theicd.github.io/GROVEE-STDIO-FLUX-2/og-image.jpg)](https://video.nostr.build/1facad11c3da586a0f80404ff10260752a2e5ab5f6b8b3bdc7adb29f3b741669.webm)
+
+▶ **[Watch the demo video](https://video.nostr.build/1facad11c3da586a0f80404ff10260752a2e5ab5f6b8b3bdc7adb29f3b741669.webm)** · 🚀 **[Open the live app](https://theicd.github.io/GROVEE-STDIO-FLUX-2/)**
+
+| | |
+|---|---|
+| **NVIDIA** (tested: RTX 3050) | ✅ Works |
+| **AMD** (tested: RX 550) | ✅ Works |
+| **Install required** | ❌ None — browser only |
+| **Cloud / server** | ❌ None — 100% local |
 
 This is a **separate product** from [GROVEE STDIO (SD 1.5)](https://github.com/Theicd/GROVEE-STDIO). Different repo, different model (~12 GB), different live URL.
 
