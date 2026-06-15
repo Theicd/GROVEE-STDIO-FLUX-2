@@ -1,4 +1,4 @@
-# GROVEE STDIO FLUX 2
+# GROVEE STDIO FLUX 2 - WEBGPU - LLMLOCAL
 
 **FLUX.2 Klein 4B** — AI image generation **entirely in your browser** (WebGPU). HAL-terminal UI.
 
